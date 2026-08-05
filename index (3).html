@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0B6E4F">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>سجل التحصيل اليومي</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800&family=Tajawal:wght@400;500;700&display=swap');
+  * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+  html, body { margin: 0; padding: 0; background: #E9EEEA; }
+  input, select, button { font-family: 'Tajawal', sans-serif; }
+  input:focus, select:focus, button:focus { outline: 2px solid #0B6E4F; outline-offset: 1px; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: #C7D3CE; border-radius: 4px; }
+  button { cursor: pointer; transition: transform .12s ease, opacity .12s ease; }
+  button:active { transform: scale(0.95); }
+  a:active { transform: scale(0.95); }
+
+  @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes modalSlideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+  .app-shell { max-width: 480px; margin: 0 auto; min-height: 100vh; background: #F7F9F7; display: flex; flex-direction: column; }
+  .header { background: #0B6E4F; padding: 18px 16px; color: #fff; }
+  .header-top { display: flex; align-items: center; gap: 12px; }
+  .brand-ring { background: #fff; border-radius: 50%; padding: 2px; flex-shrink: 0; }
+  .brand-title { font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 17px; }
+  .brand-sub { font-size: 12.5px; opacity: .9; margin-top: 3px; }
+  .body { flex: 1; padding: 14px 14px 90px 14px; overflow-y: auto; animation: fadeSlideIn .25s ease; }
+
+  .date-bar { display: flex; align-items: center; background: #fff; border-radius: 12px; padding: 8px 10px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .date-arrow { border: none; background: #EEF3EF; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: #0B6E4F; font-size: 16px; }
+  .date-input { border: none; font-size: 14px; font-weight: 700; text-align: center; background: transparent; color: #173B33; }
+  .date-human { font-size: 11.5px; color: #8A9A96; margin-top: 2px; }
+
+  .stats-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .stat-card { flex: 1; background: #fff; border-radius: 10px; padding: 10px 8px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .stat-label { font-size: 12px; color: #8A9A96; }
+  .stat-value { font-size: 15px; font-weight: 700; margin-top: 2px; }
+
+  .search-row { display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 10px; padding: 8px 12px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .search-input { flex: 1; border: none; font-size: 13.5px; background: transparent; }
+  .add-client-btn { border: none; background: #0B6E4F; color: #fff; border-radius: 8px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+
+  .tour-btn { width: 100%; margin-top: 8px; background: #EAF5EE; color: #0B6E4F; border: 1px solid #BFE0CE; border-radius: 10px; padding: 10px 0; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+  .client-card { background: #fff; border-radius: 12px; padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.05); animation: fadeSlideIn .3s ease; }
+  .client-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .client-name { font-weight: 700; font-size: 14.5px; color: #173B33; }
+  .client-machine { font-weight: 700; font-size: 13px; color: #000; margin-top: 3px; }
+  .client-meta { font-size: 11.5px; color: #8A9A96; display: flex; align-items: center; gap: 4px; margin-top: 3px; }
+  .phone-row { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+  .phone-action { border: none; background: #EEF3EF; border-radius: 6px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 11px; text-decoration: none; }
+  .client-footer { display: flex; justify-content: space-between; font-size: 12px; color: #5B6B67; margin-top: 10px; padding-top: 8px; border-top: 1px solid #F0F3F1; }
+  .send-btn-col { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+  .send-btn { display: flex; align-items: center; gap: 4px; background: #EAF5EE; color: #0B6E4F; border: none; border-radius: 8px; padding: 6px 10px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+  .quick-btn { display: flex; align-items: center; justify-content: center; gap: 3px; background: #FBEFDD; color: #C9862B; border: none; border-radius: 8px; padding: 5px 8px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+  .tx-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; padding-top: 8px; border-top: 1px solid #F0F3F1; }
+  .tx-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tx-amount { font-weight: 700; font-size: 13px; color: #173B33; }
+  .tx-note { font-size: 11.5px; color: #8A9A96; }
+  .collected-pill { background: #0B6E4F; color: #fff; border: none; border-radius: 20px; padding: 4px 10px; font-size: 11px; }
+  .pending-pill { background: #FBEFDD; color: #C9862B; border: none; border-radius: 20px; padding: 4px 10px; font-size: 11px; }
+  .trash-btn { border: none; background: transparent; color: #C0483F; padding: 4px; font-size: 14px; }
+  .icon-btn { border: none; background: #EEF3EF; border-radius: 8px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: #3A4A46; }
+  .icon-btn-danger { border: none; background: #FBEAE8; border-radius: 8px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: #C0483F; }
+  .empty-state { text-align: center; color: #8A9A96; font-size: 13px; padding: 30px 10px; }
+
+  .section-title { font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 15.5px; color: #173B33; margin-bottom: 12px; }
+  .field-label { font-size: 12.5px; color: #5B6B67; font-weight: 700; margin-top: 12px; margin-bottom: 5px; display: block; }
+  .select-field { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #E4E9E4; background: #fff; font-size: 13.5px; color: #173B33; }
+  .location-btn { width: 100%; margin-top: 4px; background: #fff; color: #0B6E4F; border: 1.5px dashed #BFE0CE; border-radius: 10px; padding: 10px 0; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .segment-row { display: flex; gap: 6px; margin-bottom: 4px; }
+  .segment-btn { flex: 1; padding: 8px 0; border-radius: 8px; border: 1px solid #E4E9E4; background: #fff; color: #5B6B67; font-size: 12.5px; }
+  .segment-btn-active { flex: 1; padding: 8px 0; border-radius: 8px; border: 1px solid #0B6E4F; background: #0B6E4F; color: #fff; font-size: 12.5px; font-weight: 700; }
+  .preview-box { background: #EAF5EE; border-radius: 10px; padding: 12px; font-size: 13px; color: #173B33; display: flex; flex-direction: column; gap: 4px; margin-top: 14px; }
+  .export-btn { width: 100%; margin-top: 16px; background: #0B6E4F; color: #fff; border: none; border-radius: 10px; padding: 12px 0; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+  .bottom-nav { display: flex; background: #fff; border-top: 1px solid #EDEFED; padding: 6px 4px; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; }
+  .nav-btn { flex: 1; border: none; background: transparent; color: #9AA6A2; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; font-size: 16px; }
+  .nav-btn-active { flex: 1; border: none; background: transparent; color: #0B6E4F; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; font-weight: 700; font-size: 16px; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(10,20,18,.45); display: flex; align-items: flex-end; justify-content: center; z-index: 50; animation: overlayFadeIn .18s ease; }
+  .modal-card { background: #fff; width: 100%; max-width: 480px; border-radius: 16px 16px 0 0; padding: 18px 16px 22px; max-height: 85vh; overflow-y: auto; animation: modalSlideUp .28s cubic-bezier(.2,.8,.2,1); }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .modal-title { font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 15px; color: #173B33; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+/* ---------------- Lazy-load XLSX library only when actually needed ---------------- */
+let xlsxLoadPromise = null;
+function ensureXLSX(){
+  if (window.XLSX) return Promise.resolve();
+  if (xlsxLoadPromise) return xlsxLoadPromise;
+  xlsxLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    script.onload = () => resolve();
+    script.onerror = () => { xlsxLoadPromise = null; reject(new Error('تعذر تحميل مكتبة الإكسيل')); };
+    document.head.appendChild(script);
+  });
+  return xlsxLoadPromise;
+}
+
+/* ---------------- Helpers ---------------- */
+function uid(p){ return p + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function monthStr(){ return new Date().toISOString().slice(0,7); }
+function yearNum(){ return new Date().getFullYear(); }
+const WEEKDAYS = ["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+const MONTHS = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+function fmtDateHuman(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d)) return dateStr;
+  return WEEKDAYS[d.getDay()] + ' ' + d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+}
+function fmtMoney(n){
+  const num = Number(n) || 0;
+  return num.toLocaleString('ar-EG', {maximumFractionDigits: 2}) + ' ج.م';
+}
+function esc(s){
+  return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------------- State ---------------- */
+let clients = [];
+let transactions = [];
+let areas = [];
+let tab = 'daily';
+let selectedDate = todayStr();
+let search = '';
+let areaFilter = 'all';
+let showClientModal = false;
+let editingClientId = null;
+let amountModalClientId = null;
+let showAreaModal = false;
+let editingAreaId = null;
+let exportClient = 'all';
+let exportPeriodType = 'day';
+let exportDay = todayStr();
+let exportMonth = monthStr();
+let exportYear = yearNum();
+let followupFilter = 'pending';
+let myLocation = null;
+let locatingInProgress = false;
+
+function loadData(){
+  try {
+    const raw = localStorage.getItem('ledger-data');
+    if (raw) { const d = JSON.parse(raw); clients = d.clients || []; transactions = d.transactions || []; areas = d.areas || []; }
+  } catch (e) { console.error('load error', e); }
+}
+function saveData(){
+  try { localStorage.setItem('ledger-data', JSON.stringify({clients, transactions, areas})); }
+  catch (e) { alert('تعذر حفظ البيانات على هذا الجهاز'); }
+}
+
+/* ---------------- Derived data ---------------- */
+function getDayTx(){ return transactions.filter(t => t.date === selectedDate); }
+function computeStats(txs){
+  const total = txs.reduce((s,t) => s + t.amountSent, 0);
+  const collected = txs.filter(t => t.collected).reduce((s,t) => s + t.amountSent, 0);
+  const pending = total - collected;
+  const pct = total > 0 ? Math.round(collected/total*100) : 0;
+  return {total, collected, pending, pct, count: txs.length};
+}
+function sortedClients(){ return clients.slice().sort((a,b) => a.name.localeCompare(b.name,'ar')); }
+function sortedAreas(){ return areas.slice().sort((a,b) => a.name.localeCompare(b.name,'ar')); }
+function clientPendingTotal(clientId){
+  return transactions.filter(t => t.clientId === clientId && !t.collected).reduce((s,t) => s + t.amountSent, 0);
+}
+function buildOverdueBadge(c){
+  const pend = clientPendingTotal(c.id);
+  return pend > 0 ? '<div class="client-meta" style="color:#C0483F;font-weight:700">⚠️ متأخر عليه: ' + fmtMoney(pend) + '</div>' : '';
+}
+function filteredClientList(){
+  const list = clients.filter(c =>
+    (c.name.includes(search) || (c.location||'').includes(search) || (c.address||'').includes(search) || (c.machineNumber||'').includes(search)) &&
+    (areaFilter === 'all' || c.location === areaFilter)
+  );
+  return sortByProximityOrName(list);
+}
+function sortByProximityOrName(list){
+  if (!myLocation) return list.slice().sort((a,b) => a.name.localeCompare(b.name,'ar'));
+  const withLoc = list.filter(c => c.lat != null && c.lng != null);
+  const withoutLoc = list.filter(c => c.lat == null || c.lng == null);
+  withLoc.sort((a,b) => distanceKm(myLocation, {lat:a.lat,lng:a.lng}) - distanceKm(myLocation, {lat:b.lat,lng:b.lng}));
+  withoutLoc.sort((a,b) => a.name.localeCompare(b.name,'ar'));
+  return withLoc.concat(withoutLoc);
+}
+function refreshMyLocation(silent){
+  if (!navigator.geolocation) { if (!silent) alert('المتصفح ده مش بيدعم تحديد الموقع'); return; }
+  locatingInProgress = true;
+  if (!silent) render();
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      myLocation = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+      locatingInProgress = false;
+      render();
+    },
+    () => {
+      locatingInProgress = false;
+      if (!silent) alert('تعذر تحديد موقعك الحالي. فعّل صلاحية الموقع من إعدادات المتصفح وحاول تاني.');
+      render();
+    },
+    {enableHighAccuracy: true, timeout: 15000}
+  );
+}
+function buildLocationSortBar(){
+  if (locatingInProgress) return '<div class="tour-btn" style="opacity:.7">📍 جاري تحديد موقعك...</div>';
+  if (myLocation) return '<button class="tour-btn" onclick="refreshMyLocation(false)">📍 القائمة مرتبة حسب الأقرب لموقعك — تحديث</button>';
+  return '<button class="tour-btn" onclick="refreshMyLocation(false)">📍 فعّل تحديد الموقع لترتيب العملاء حسب الأقرب</button>';
+}
+function setAreaFilter(v){ areaFilter = v; render(); }
+function buildAreaFilterSelect(){
+  if (areas.length === 0) return '';
+  return '<select class="select-field" style="margin-top:8px" onchange="setAreaFilter(this.value)">'
+    + '<option value="all"' + (areaFilter === 'all' ? ' selected' : '') + '>كل المناطق</option>'
+    + sortedAreas().map(a => '<option value="' + esc(a.name) + '" ' + (areaFilter === a.name ? 'selected' : '') + '>' + esc(a.name) + '</option>').join('')
+    + '</select>';
+}
+
+/* ---------------- Actions ---------------- */
+function openNewClient(){ editingClientId = null; showClientModal = true; render(); }
+function openEditClient(id){ editingClientId = id; showClientModal = true; render(); }
+function closeClientModal(){ showClientModal = false; editingClientId = null; render(); }
+function saveClientForm(){
+  const name = document.getElementById('cf-name').value.trim();
+  const machineNumber = document.getElementById('cf-machine').value.trim();
+  const location = document.getElementById('cf-location').value.trim();
+  const address = document.getElementById('cf-address').value.trim();
+  const phone = document.getElementById('cf-phone').value.trim();
+  const latRaw = document.getElementById('cf-lat').value;
+  const lngRaw = document.getElementById('cf-lng').value;
+  const lat = latRaw !== '' ? parseFloat(latRaw) : null;
+  const lng = lngRaw !== '' ? parseFloat(lngRaw) : null;
+  if (!name) { alert('أدخل اسم العميل'); return; }
+  if (editingClientId) {
+    clients = clients.map(c => c.id === editingClientId ? {...c, name, machineNumber, location, address, phone, lat, lng} : c);
+  } else {
+    clients.push({id: uid('c'), name, machineNumber, location, address, phone, lat, lng, createdAt: todayStr()});
+  }
+  saveData(); showClientModal = false; editingClientId = null; render();
+}
+function deleteClient(id){
+  if (!confirm('حذف هذا العميل؟ سجل معاملاته السابقة سيبقى محفوظاً.')) return;
+  clients = clients.filter(c => c.id !== id);
+  saveData(); render();
+}
+
+/* ---------------- Areas ---------------- */
+function openNewArea(){ editingAreaId = null; showAreaModal = true; render(); }
+function openEditArea(id){ editingAreaId = id; showAreaModal = true; render(); }
+function closeAreaModal(){ showAreaModal = false; editingAreaId = null; render(); }
+function saveAreaForm(){
+  const name = document.getElementById('af-name').value.trim();
+  if (!name) { alert('أدخل اسم المنطقة'); return; }
+  if (editingAreaId) {
+    const area = areas.find(a => a.id === editingAreaId);
+    if (area) {
+      const oldName = area.name;
+      area.name = name;
+      if (oldName !== name) {
+        clients = clients.map(c => c.location === oldName ? {...c, location: name} : c);
+        if (areaFilter === oldName) areaFilter = name;
+      }
+    }
+  } else {
+    if (areas.some(a => a.name === name)) { alert('هذه المنطقة مسجلة بالفعل'); return; }
+    areas.push({id: uid('a'), name});
+  }
+  saveData(); showAreaModal = false; editingAreaId = null; render();
+}
+function deleteArea(id){
+  const area = areas.find(a => a.id === id);
+  if (!area) return;
+  const count = clients.filter(c => c.location === area.name).length;
+  const msg = count > 0
+    ? ('هذه المنطقة مرتبطة بـ ' + count + ' عميل. حذفها لن يحذف العملاء أو يمسح بيانات مناطقهم، لكنها ستختفي من قائمة المناطق المسجلة. متابعة؟')
+    : 'حذف هذه المنطقة؟';
+  if (!confirm(msg)) return;
+  areas = areas.filter(a => a.id !== id);
+  if (areaFilter === area.name) areaFilter = 'all';
+  saveData(); render();
+}
+
+/* ---------------- Location & Tour ---------------- */
+function captureLocation(){
+  if (!navigator.geolocation) { alert('المتصفح ده مش بيدعم تحديد الموقع'); return; }
+  const btn = document.getElementById('location-btn');
+  if (btn) btn.textContent = '⏳ جاري تحديد الموقع...';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      document.getElementById('cf-lat').value = pos.coords.latitude;
+      document.getElementById('cf-lng').value = pos.coords.longitude;
+      if (btn) btn.textContent = '✅ تم تسجيل موقعك الحالي';
+    },
+    () => {
+      alert('تعذر تحديد الموقع. تأكد إن صلاحية الموقع مفعّلة للمتصفح وجرّب تاني.');
+      if (btn) btn.textContent = '📍 سجّل موقعي الحالي';
+    },
+    {enableHighAccuracy: true, timeout: 15000}
+  );
+}
+function distanceKm(a, b){
+  const R = 6371;
+  const dLat = (b.lat - a.lat) * Math.PI / 180;
+  const dLng = (b.lng - a.lng) * Math.PI / 180;
+  const s = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180) * Math.cos(b.lat*Math.PI/180) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1-s));
+}
+function nearestNeighborOrder(start, list){
+  const remaining = list.slice();
+  const ordered = [];
+  let current = start;
+  while (remaining.length) {
+    let bestIdx = 0, bestDist = Infinity;
+    remaining.forEach((c, i) => {
+      const d = distanceKm(current, {lat: c.lat, lng: c.lng});
+      if (d < bestDist) { bestDist = d; bestIdx = i; }
+    });
+    const next = remaining.splice(bestIdx, 1)[0];
+    ordered.push(next);
+    current = {lat: next.lat, lng: next.lng};
+  }
+  return ordered;
+}
+function openMapsRoute(ordered){
+  const CHUNK = 9; // أقصى عدد محطات تقريبي مدعوم في رابط جوجل ماب الواحد
+  for (let i = 0; i < ordered.length; i += CHUNK) {
+    const chunk = ordered.slice(i, i + CHUNK);
+    const dest = chunk[chunk.length - 1];
+    const waypoints = chunk.slice(0, -1).map(c => c.lat + ',' + c.lng).join('|');
+    let url = 'https://www.google.com/maps/dir/?api=1&destination=' + dest.lat + ',' + dest.lng;
+    if (waypoints) url += '&waypoints=' + encodeURIComponent(waypoints);
+    url += '&travelmode=driving';
+    window.open(url, '_blank');
+  }
+}
+function startTour(){
+  const list = filteredClientList();
+  if (list.length === 0) { alert('لا يوجد عملاء في القائمة الحالية'); return; }
+  const withLoc = list.filter(c => c.lat != null && c.lng != null);
+  const withoutLoc = list.filter(c => c.lat == null || c.lng == null);
+  if (withLoc.length === 0) { alert('لا يوجد عميل في القائمة الحالية له موقع مسجل بعد. سجّل موقع العميل من فورم تعديله الأول.'); return; }
+  if (withoutLoc.length > 0) {
+    const names = withoutLoc.map(c => c.name).join('، ');
+    if (!confirm('تنبيه: ' + withoutLoc.length + ' عميل من غير موقع مسجل (' + names + ') مش هيدخلوا الجولة. متابعة بالباقي (' + withLoc.length + ' عميل)؟')) return;
+  }
+  if (!navigator.geolocation) { alert('المتصفح مش بيدعم تحديد الموقع'); return; }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const start = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+      const ordered = nearestNeighborOrder(start, withLoc);
+      openMapsRoute(ordered);
+    },
+    () => alert('تعذر تحديد موقعك الحالي. فعّل صلاحية الموقع وحاول تاني.'),
+    {enableHighAccuracy: true, timeout: 15000}
+  );
+}
+
+/* ---------------- Quick collect & contact ---------------- */
+function lastAmountForClient(clientId){
+  const list = transactions.filter(t => t.clientId === clientId).sort((a,b) => (a.createdAt||'').localeCompare(b.createdAt||''));
+  return list.length ? list[list.length - 1].amountSent : null;
+}
+function quickCollect(clientId){
+  const amt = lastAmountForClient(clientId);
+  if (!amt) return;
+  transactions.push({id: uid('t'), clientId, date: selectedDate, amountSent: amt, collected: false, collectedDate: null, notes: '', createdAt: new Date().toISOString()});
+  saveData(); render();
+}
+function waLink(phone){
+  let digits = (phone || '').replace(/\D/g, '');
+  if (!digits) return '#';
+  if (digits.startsWith('0')) digits = '20' + digits.slice(1);
+  else if (!digits.startsWith('20')) digits = '20' + digits;
+  return 'https://wa.me/' + digits;
+}
+
+function openAmountModal(clientId){ amountModalClientId = clientId; render(); }
+function closeAmountModal(){ amountModalClientId = null; render(); }
+function saveAmountForm(){
+  const amount = parseFloat(document.getElementById('am-amount').value);
+  const note = document.getElementById('am-note').value.trim();
+  if (!amount || amount <= 0) { alert('أدخل مبلغاً صحيحاً'); return; }
+  transactions.push({id: uid('t'), clientId: amountModalClientId, date: selectedDate, amountSent: amount, collected: false, collectedDate: null, notes: note, createdAt: new Date().toISOString()});
+  saveData(); amountModalClientId = null; render();
+}
+function toggleCollected(txId){
+  transactions = transactions.map(t => t.id === txId ? {...t, collected: !t.collected, collectedDate: !t.collected ? todayStr() : null} : t);
+  saveData(); render();
+}
+function deleteTransaction(txId){
+  if (!confirm('حذف هذه المعاملة؟')) return;
+  transactions = transactions.filter(t => t.id !== txId);
+  saveData(); render();
+}
+
+function setTab(t){ tab = t; render(); }
+function setSelectedDate(v){ selectedDate = v; render(); }
+function shiftDate(days){
+  const d = new Date(selectedDate + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  selectedDate = d.toISOString().slice(0,10);
+  render();
+}
+function setSearch(v){
+  search = v;
+  const container = document.getElementById('search-results');
+  if (container) {
+    const list = filteredClientList();
+    container.innerHTML = (tab === 'clients') ? buildClientsResultsHTML(list) : buildDailyResultsHTML(list);
+  } else {
+    render();
+  }
+}
+function setExportClient(v){ exportClient = v; render(); }
+function setExportPeriodType(v){ exportPeriodType = v; render(); }
+function setExportDay(v){ exportDay = v; render(); }
+function setExportMonth(v){ exportMonth = v; render(); }
+function setExportYear(v){ exportYear = v; render(); }
+function setFollowupFilter(v){ followupFilter = v; render(); }
+
+function getExportFiltered(){
+  let filtered = transactions;
+  if (exportClient !== 'all') filtered = filtered.filter(t => t.clientId === exportClient);
+  if (exportPeriodType === 'day') filtered = filtered.filter(t => t.date === exportDay);
+  else if (exportPeriodType === 'month') filtered = filtered.filter(t => t.date.slice(0,7) === exportMonth);
+  else if (exportPeriodType === 'year') filtered = filtered.filter(t => t.date.slice(0,4) === String(exportYear));
+  return filtered;
+}
+function buildFileName(){
+  const clientPart = exportClient === 'all' ? 'كل_العملاء' : ((clients.find(c => c.id === exportClient) || {}).name || 'عميل').replace(/\s+/g, '_');
+  let periodPart = 'الكل';
+  if (exportPeriodType === 'day') periodPart = exportDay;
+  else if (exportPeriodType === 'month') periodPart = exportMonth;
+  else if (exportPeriodType === 'year') periodPart = String(exportYear);
+  return 'تحصيل_' + clientPart + '_' + periodPart + '.xlsx';
+}
+function periodLabel(){
+  if (exportPeriodType === 'day') return fmtDateHuman(exportDay);
+  if (exportPeriodType === 'month') return exportMonth;
+  if (exportPeriodType === 'year') return String(exportYear);
+  return 'كل الفترات';
+}
+async function doExport(){
+  try { await ensureXLSX(); }
+  catch (e) { alert('تعذر تحميل مكتبة الإكسيل. تأكد إن الإنترنت شغال وجرّب تاني.'); return; }
+
+  // لو العميل المختار سابقًا اتحذف، ارجع تلقائيًا لكل العملاء بدل ما يطلع ملف فاضي
+  if (exportClient !== 'all' && !clients.some(c => c.id === exportClient)) {
+    exportClient = 'all';
+  }
+
+  const filtered = getExportFiltered();
+
+  // حدد قائمة العملاء المطلوب إظهارهم: عميل واحد فقط أو كل العملاء
+  const clientsToShow = exportClient === 'all' ? sortedClients() : clients.filter(c => c.id === exportClient);
+  if (clientsToShow.length === 0) { alert('لا يوجد عملاء مسجلين لتصديرهم. أضف عميل أولاً من تبويب العملاء.'); return; }
+
+  const rows = clientsToShow.map(c => {
+    const ct = filtered.filter(t => t.clientId === c.id);
+    const totalSent = ct.reduce((s,t) => s + t.amountSent, 0);
+    const totalCollected = ct.filter(t => t.collected).reduce((s,t) => s + t.amountSent, 0);
+    const totalPending = totalSent - totalCollected;
+    return {
+      'اسم العميل': c.name,
+      'رقم المكنة': c.machineNumber || '-',
+      'المنطقة': c.location || '-',
+      'العنوان': c.address || '-',
+      'رقم الهاتف': c.phone || '-',
+      [('الرصيد المرسل (' + periodLabel() + ')')]: totalSent,
+      'تم تحصيله': totalCollected,
+      'المتبقي': totalPending
+    };
+  });
+
+  const grandTotalSent = rows.reduce((s,r) => s + r['الرصيد المرسل (' + periodLabel() + ')'], 0);
+  const grandTotalCollected = rows.reduce((s,r) => s + r['تم تحصيله'], 0);
+  const grandTotalPending = rows.reduce((s,r) => s + r['المتبقي'], 0);
+  const totalRow = {
+    'اسم العميل': 'الإجمالي',
+    'رقم المكنة': '',
+    'المنطقة': '',
+    'العنوان': '',
+    'رقم الهاتف': '',
+    ['الرصيد المرسل (' + periodLabel() + ')']: grandTotalSent,
+    'تم تحصيله': grandTotalCollected,
+    'المتبقي': grandTotalPending
+  };
+
+  const ws = XLSX.utils.json_to_sheet(rows.concat([totalRow]));
+  ws['!cols'] = [{wch:22},{wch:14},{wch:18},{wch:24},{wch:15},{wch:22},{wch:14},{wch:14}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'التحصيل');
+  const wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+  const blob = new Blob([wbout], {type:'application/octet-stream'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = buildFileName();
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ---------------- Full JSON Backup / Restore ---------------- */
+const BACKUP_FOLDER = 'تحصيل احتياطي';
+function buildBackupFileName(){
+  return BACKUP_FOLDER + '/نسخة_احتياطية_' + todayStr() + '_' + Date.now() + '.json';
+}
+function doBackupExport(){
+  try {
+    const payload = {
+      app: 'تحصيل',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      clients, transactions, areas
+    };
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = buildBackupFileName();
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert('تعذر إنشاء النسخة الاحتياطية');
+  }
+}
+function triggerRestoreBackup(){
+  const el = document.getElementById('restore-backup-input');
+  if (el) el.click();
+}
+function handleRestoreBackup(event){
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data || !Array.isArray(data.clients) || !Array.isArray(data.transactions)) {
+        alert('ملف النسخة الاحتياطية غير صالح أو تالف');
+        event.target.value = '';
+        return;
+      }
+      const summary = 'هذه النسخة تحتوي على:\n'
+        + data.clients.length + ' عميل\n'
+        + data.transactions.length + ' معاملة\n'
+        + (Array.isArray(data.areas) ? data.areas.length : 0) + ' منطقة\n\n'
+        + 'استعادتها ستستبدل كل البيانات الحالية في التطبيق بالكامل. متابعة؟';
+      if (!confirm(summary)) { event.target.value = ''; return; }
+      clients = data.clients || [];
+      transactions = data.transactions || [];
+      areas = Array.isArray(data.areas) ? data.areas : [];
+      saveData();
+      render();
+      alert('تم استعادة النسخة الاحتياطية بنجاح');
+    } catch (err) {
+      alert('تعذر قراءة الملف. تأكد أنه ملف نسخة احتياطية صحيح (JSON).');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+/* ---------------- Import from Excel ---------------- */
+function triggerImport(){
+  const el = document.getElementById('import-file-input');
+  if (el) el.click();
+}
+
+async function handleImportFile(event){
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  try { await ensureXLSX(); }
+  catch (e) { alert('تعذر تحميل مكتبة الإكسيل. تأكد إن الإنترنت شغال وجرّب تاني.'); event.target.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type: 'array'});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = sheetToRowsWithHyperlinks(sheet);
+      importClientsFromRows(rows);
+    } catch (err) {
+      alert('تعذر قراءة الملف. تأكد أنه ملف إكسيل صحيح (xlsx أو xls).');
+    }
+    event.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* يبني صفوف على شكل كائنات زي sheet_to_json العادية، لكن بيحافظ كمان على روابط الهايبرلينك
+   (زي رابط 📍 الموقع اللي بيودّي لجوجل ماب) عشان نقدر نستخرج منها الإحداثيات لاحقًا */
+function sheetToRowsWithHyperlinks(sheet){
+  if (!sheet['!ref']) return [];
+  const range = XLSX.utils.decode_range(sheet['!ref']);
+  const headers = [];
+  for (let c = range.s.c; c <= range.e.c; c++) {
+    const cell = sheet[XLSX.utils.encode_cell({r: range.s.r, c})];
+    headers.push(cell && cell.v != null ? String(cell.v).trim() : ('col' + c));
+  }
+  const rows = [];
+  for (let r = range.s.r + 1; r <= range.e.r; r++) {
+    const rowObj = {};
+    let hasData = false;
+    for (let c = range.s.c; c <= range.e.c; c++) {
+      const key = headers[c - range.s.c];
+      const cell = sheet[XLSX.utils.encode_cell({r, c})];
+      const val = cell && cell.v != null ? cell.v : '';
+      if (String(val).trim() !== '') hasData = true;
+      rowObj[key] = val;
+      if (cell && cell.l && cell.l.Target) rowObj['__hyperlink_' + key] = cell.l.Target;
+    }
+    if (hasData) rows.push(rowObj);
+  }
+  return rows;
+}
+
+function getImportField(row, possibleNames){
+  const keys = Object.keys(row);
+  for (const wanted of possibleNames) {
+    const foundKey = keys.find(k => String(k).trim() === wanted);
+    if (foundKey != null && String(row[foundKey]).trim() !== '') return String(row[foundKey]).trim();
+  }
+  return '';
+}
+
+/* يدوّر على إحداثيات lat/lng جوّه عمود لينك الموقع سواء كانت مخزّنة كهايبرلينك
+   (زي "📍 الموقع" اللي بيودّي لرابط جوجل ماب) أو كنص عادي جوّه الخلية نفسها */
+function extractLatLngFromText(text){
+  if (!text) return null;
+  const s = String(text);
+  let m = s.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (!m) m = s.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (!m) m = s.match(/^\s*(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)\s*$/);
+  if (!m) return null;
+  const lat = parseFloat(m[1]), lng = parseFloat(m[2]);
+  if (isNaN(lat) || isNaN(lng)) return null;
+  return {lat, lng};
+}
+function getImportLatLng(row, possibleNames){
+  const keys = Object.keys(row);
+  for (const wanted of possibleNames) {
+    const foundKey = keys.find(k => String(k).trim() === wanted);
+    if (foundKey == null) continue;
+    const fromLink = extractLatLngFromText(row['__hyperlink_' + foundKey]);
+    if (fromLink) return fromLink;
+    const fromValue = extractLatLngFromText(row[foundKey]);
+    if (fromValue) return fromValue;
+  }
+  return null;
+}
+
+function importClientsFromRows(rows){
+  if (!rows || rows.length === 0) { alert('الملف لا يحتوي على بيانات'); return; }
+  let added = 0, updated = 0, skipped = 0, withLocation = 0;
+  rows.forEach(row => {
+    const name = getImportField(row, ['اسم العميل', 'الاسم', 'اسم', 'Name', 'name']);
+    if (!name) { skipped++; return; }
+    const machineNumber = getImportField(row, ['رقم المكنة', 'رقم الماكينة', 'المكنة', 'Machine', 'Machine Number']);
+    const location = getImportField(row, ['المنطقة', 'Area', 'Region']);
+    const address = getImportField(row, ['العنوان', 'Address']);
+    const phone = getImportField(row, ['رقم الهاتف', 'رقم التليفون', 'الهاتف', 'تليفون', 'Phone']);
+    const latLng = getImportLatLng(row, ['الموقع', 'الاحداثيات', 'الإحداثيات', 'GPS', 'Location', 'Map', 'خريطة']);
+
+    const existing = clients.find(c =>
+      c.name.trim() === name && (!machineNumber || (c.machineNumber || '') === machineNumber)
+    );
+
+    if (location && !areas.some(a => a.name === location)) {
+      areas.push({id: uid('a'), name: location});
+    }
+    if (latLng) withLocation++;
+
+    if (existing) {
+      existing.machineNumber = machineNumber || existing.machineNumber;
+      existing.location = location || existing.location;
+      existing.address = address || existing.address;
+      existing.phone = phone || existing.phone;
+      if (latLng) { existing.lat = latLng.lat; existing.lng = latLng.lng; }
+      updated++;
+    } else {
+      clients.push({
+        id: uid('c'), name, machineNumber, location, address, phone,
+        lat: latLng ? latLng.lat : null, lng: latLng ? latLng.lng : null,
+        createdAt: todayStr()
+      });
+      added++;
+    }
+  });
+  saveData();
+  render();
+  let msg = 'تم الاستيراد بنجاح:\n' + added + ' عميل جديد تمت إضافته';
+  if (updated > 0) msg += '\n' + updated + ' عميل موجود تم تحديث بياناته';
+  if (withLocation > 0) msg += '\n' + withLocation + ' صف كان معاه موقع GPS تم تسجيله';
+  if (skipped > 0) msg += '\n' + skipped + ' صف تم تجاهله (بدون اسم عميل)';
+  alert(msg);
+}
+
+/* ---------------- Render ---------------- */
+function render(){
+  const active = document.activeElement;
+  const activeId = active && active.id;
+  const selStart = active && typeof active.selectionStart === 'number' ? active.selectionStart : null;
+  const selEnd = active && typeof active.selectionEnd === 'number' ? active.selectionEnd : null;
+
+  document.getElementById('root').innerHTML = buildApp();
+
+  if (activeId) {
+    const el = document.getElementById(activeId);
+    if (el) {
+      el.focus();
+      if (selStart != null && el.setSelectionRange) { try { el.setSelectionRange(selStart, selEnd); } catch (e) {} }
+    }
+  }
+}
+
+function buildApp(){
+  return '<div class="app-shell">'
+    + buildHeader()
+    + '<div class="body">' + (tab === 'daily' ? buildDailyTab() : tab === 'clients' ? buildClientsTab() : tab === 'areas' ? buildAreasTab() : tab === 'followup' ? buildFollowupTab() : buildExportTab()) + '</div>'
+    + buildBottomNav()
+    + '</div>'
+    + (showClientModal ? buildClientModal() : '')
+    + (amountModalClientId ? buildAmountModal() : '')
+    + (showAreaModal ? buildAreaModal() : '');
+}
+
+function buildHeader(){
+  const stats = computeStats(getDayTx());
+  const overall = computeStats(transactions);
+  const r = 26, c = 2 * Math.PI * r, offset = c - (c * stats.pct / 100);
+  return '<div class="header"><div class="header-top">'
+    + '<div class="brand-ring"><svg width="60" height="60" viewBox="0 0 60 60">'
+    + '<circle cx="30" cy="30" r="' + r + '" fill="none" stroke="#E4E9E4" stroke-width="6"/>'
+    + '<circle cx="30" cy="30" r="' + r + '" fill="none" stroke="#0B6E4F" stroke-width="6" stroke-dasharray="' + c + '" stroke-dashoffset="' + offset + '" stroke-linecap="round" transform="rotate(-90 30 30)"/>'
+    + '<text x="30" y="35" text-anchor="middle" font-size="16" font-weight="700" fill="#0B6E4F">' + stats.pct + '%</text>'
+    + '</svg></div>'
+    + '<div style="flex:1"><div class="brand-title">سجل التحصيل اليومي</div>'
+    + '<div class="brand-sub">' + (stats.count > 0 ? (fmtMoney(stats.collected) + ' محصّل من ' + fmtMoney(stats.total)) : 'لا معاملات لهذا اليوم بعد') + '</div>'
+    + (overall.pending > 0 ? '<div class="brand-sub" style="margin-top:2px;font-weight:700;cursor:pointer" onclick="setTab(\'followup\')">⚠️ معلّق من كل الأيام: ' + fmtMoney(overall.pending) + '</div>' : '')
+    + '</div>'
+    + '</div></div>';
+}
+
+function buildDailyTab(){
+  const stats = computeStats(getDayTx());
+  const list = filteredClientList();
+  return '<div class="date-bar">'
+    + '<button class="date-arrow" onclick="shiftDate(1)">&#8250;</button>'
+    + '<div style="flex:1;text-align:center">'
+    + '<input id="date-input" type="date" value="' + selectedDate + '" onchange="setSelectedDate(this.value)" class="date-input">'
+    + '<div class="date-human">' + fmtDateHuman(selectedDate) + '</div></div>'
+    + '<button class="date-arrow" onclick="shiftDate(-1)">&#8249;</button>'
+    + '</div>'
+    + '<div class="stats-row">'
+    + '<div class="stat-card"><div class="stat-label">إجمالي اليوم</div><div class="stat-value" style="color:#0B6E4F">' + fmtMoney(stats.total) + '</div></div>'
+    + '<div class="stat-card"><div class="stat-label">تم تحصيله</div><div class="stat-value" style="color:#0B6E4F">' + fmtMoney(stats.collected) + '</div></div>'
+    + '<div class="stat-card"><div class="stat-label">متبقي</div><div class="stat-value" style="color:#C9862B">' + fmtMoney(stats.pending) + '</div></div>'
+    + '</div>'
+    + '<div class="search-row">🔍 <input id="search-input" placeholder="ابحث بالاسم أو رقم المكنة..." value="' + esc(search) + '" oninput="setSearch(this.value)" class="search-input">'
+    + '<button class="add-client-btn" onclick="openNewClient()">+</button></div>'
+    + buildAreaFilterSelect()
+    + buildLocationSortBar()
+    + '<button class="tour-btn" onclick="startTour()">🧭 ابدأ جولة لعملاء هذه القائمة</button>'
+    + '<div id="search-results">' + buildDailyResultsHTML(list) + '</div>';
+}
+
+function buildDailyResultsHTML(list){
+  return (list.length === 0 ? '<div class="empty-state">لا يوجد عملاء بعد. أضف أول عميل لبدء التحصيل.</div>' : '')
+    + '<div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">'
+    + list.map(buildClientDailyCard).join('')
+    + '</div>';
+}
+
+function buildClientDailyCard(c){
+  const txs = transactions.filter(t => t.clientId === c.id && t.date === selectedDate);
+  const lastAmt = lastAmountForClient(c.id);
+  return '<div class="client-card"><div class="client-card-head"><div>'
+    + '<div class="client-name">' + esc(c.name) + '</div>'
+    + (c.machineNumber ? '<div class="client-machine">رقم المكنة: ' + esc(c.machineNumber) + '</div>' : '')
+    + (c.location ? '<div class="client-meta">📍 ' + esc(c.location) + '</div>' : '')
+    + (c.address ? '<div class="client-meta">🏠 ' + esc(c.address) + '</div>' : '')
+    + (c.phone ? '<div class="phone-row"><span class="client-meta" style="margin-top:0">📞 ' + esc(c.phone) + '</span>'
+        + '<a href="tel:' + esc(c.phone) + '" class="phone-action" title="اتصال" onclick="event.stopPropagation()">📞</a>'
+        + '<a href="' + waLink(c.phone) + '" target="_blank" class="phone-action" style="color:#25D366" title="واتساب" onclick="event.stopPropagation()">💬</a>'
+        + '</div>' : '')
+    + buildOverdueBadge(c)
+    + '</div><div class="send-btn-col">'
+    + '<button class="send-btn" onclick="openAmountModal(\'' + c.id + '\')">+ إرسال مبلغ</button>'
+    + (lastAmt ? '<button class="quick-btn" onclick="quickCollect(\'' + c.id + '\')" title="تسجيل نفس آخر مبلغ فورًا">⚡ ' + fmtMoney(lastAmt) + '</button>' : '')
+    + '</div></div>'
+    + (txs.length > 0 ? '<div class="tx-list">' + txs.map(buildTxRow).join('') + '</div>' : '')
+    + '</div>';
+}
+
+function buildTxRow(t){
+  return '<div class="tx-row"><div class="tx-amount">' + fmtMoney(t.amountSent) + '</div>'
+    + (t.notes ? '<div class="tx-note">' + esc(t.notes) + '</div>' : '')
+    + '<div style="flex:1"></div>'
+    + '<button class="' + (t.collected ? 'collected-pill' : 'pending-pill') + '" onclick="toggleCollected(\'' + t.id + '\')">' + (t.collected ? '✓ تم التحصيل' : 'قيد الانتظار') + '</button>'
+    + '<button class="trash-btn" onclick="deleteTransaction(\'' + t.id + '\')">🗑</button>'
+    + '</div>';
+}
+
+function buildClientsTab(){
+  const list = filteredClientList();
+  return '<div class="search-row">🔍 <input id="search-input" placeholder="ابحث بالاسم أو رقم المكنة..." value="' + esc(search) + '" oninput="setSearch(this.value)" class="search-input">'
+    + '<button class="add-client-btn" title="استيراد من إكسيل" onclick="triggerImport()">📥</button>'
+    + '<button class="add-client-btn" onclick="openNewClient()">+</button></div>'
+    + '<input id="import-file-input" type="file" accept=".xlsx,.xls" style="display:none" onchange="handleImportFile(event)">'
+    + buildAreaFilterSelect()
+    + buildLocationSortBar()
+    + '<div id="search-results">' + buildClientsResultsHTML(list) + '</div>';
+}
+
+function buildClientsResultsHTML(list){
+  return (list.length === 0 ? '<div class="empty-state">لا يوجد عملاء بعد. اضغط + لإضافة عميل جديد، أو 📥 لاستيراد قائمة من إكسيل.</div>' : '')
+    + '<div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">'
+    + list.map(buildClientRow).join('')
+    + '</div>';
+}
+
+function buildClientRow(c){
+  const ct = transactions.filter(t => t.clientId === c.id);
+  const totalSent = ct.reduce((s,t) => s + t.amountSent, 0);
+  const totalPending = ct.filter(t => !t.collected).reduce((s,t) => s + t.amountSent, 0);
+  return '<div class="client-card"><div class="client-card-head"><div>'
+    + '<div class="client-name">' + esc(c.name) + '</div>'
+    + (c.machineNumber ? '<div class="client-machine">رقم المكنة: ' + esc(c.machineNumber) + '</div>' : '')
+    + (c.location ? '<div class="client-meta">📍 ' + esc(c.location) + '</div>' : '')
+    + (c.address ? '<div class="client-meta">🏠 ' + esc(c.address) + '</div>' : '')
+    + (c.phone ? '<div class="phone-row"><span class="client-meta" style="margin-top:0">📞 ' + esc(c.phone) + '</span>'
+        + '<a href="tel:' + esc(c.phone) + '" class="phone-action" title="اتصال" onclick="event.stopPropagation()">📞</a>'
+        + '<a href="' + waLink(c.phone) + '" target="_blank" class="phone-action" style="color:#25D366" title="واتساب" onclick="event.stopPropagation()">💬</a>'
+        + '</div>' : '')
+    + buildOverdueBadge(c)
+    + '</div><div style="display:flex;gap:6px">'
+    + '<button class="icon-btn" onclick="openEditClient(\'' + c.id + '\')">✎</button>'
+    + '<button class="icon-btn-danger" onclick="deleteClient(\'' + c.id + '\')">🗑</button>'
+    + '</div></div>'
+    + '<div class="client-footer"><span>إجمالي المرسل: <b>' + fmtMoney(totalSent) + '</b></span>'
+    + '<span style="color:' + (totalPending > 0 ? '#C9862B' : '#0B6E4F') + '">المتبقي: <b>' + fmtMoney(totalPending) + '</b></span></div>'
+    + '</div>';
+}
+
+function buildAreasTab(){
+  const list = sortedAreas();
+  return '<div class="section-title">المناطق</div>'
+    + '<div class="search-row"><div style="flex:1;font-size:12px;color:#8A9A96">سجّل مناطقك هنا، وهتظهر كاختيار عند إضافة أو تعديل أي عميل</div>'
+    + '<button class="add-client-btn" onclick="openNewArea()">+</button></div>'
+    + (list.length === 0 ? '<div class="empty-state">لا توجد مناطق مسجلة بعد. اضغط + لإضافة أول منطقة.</div>' : '')
+    + '<div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">'
+    + list.map(buildAreaRow).join('')
+    + '</div>';
+}
+
+function buildAreaRow(a){
+  const count = clients.filter(c => c.location === a.name).length;
+  return '<div class="client-card"><div class="client-card-head"><div>'
+    + '<div class="client-name">🗺️ ' + esc(a.name) + '</div>'
+    + '<div class="client-meta">👥 ' + count + ' عميل مرتبط بهذه المنطقة</div>'
+    + '</div><div style="display:flex;gap:6px">'
+    + '<button class="icon-btn" onclick="openEditArea(\'' + a.id + '\')">✎</button>'
+    + '<button class="icon-btn-danger" onclick="deleteArea(\'' + a.id + '\')">🗑</button>'
+    + '</div></div></div>';
+}
+
+function buildFollowupTab(){
+  let filtered = transactions.slice();
+  if (followupFilter === 'pending') filtered = filtered.filter(t => !t.collected);
+  else if (followupFilter === 'collected') filtered = filtered.filter(t => t.collected);
+
+  const byClient = {};
+  filtered.forEach(t => {
+    if (!byClient[t.clientId]) byClient[t.clientId] = [];
+    byClient[t.clientId].push(t);
+  });
+  const rows = Object.keys(byClient).map(cid => {
+    const c = clients.find(x => x.id === cid);
+    const txs = byClient[cid].slice().sort((a,b) => b.date.localeCompare(a.date));
+    const total = txs.reduce((s,t) => s + t.amountSent, 0);
+    return {client: c, clientId: cid, txs, total};
+  }).sort((a,b) => b.total - a.total);
+
+  const grandTotal = filtered.reduce((s,t) => s + t.amountSent, 0);
+
+  return '<div class="section-title">المتابعة</div>'
+    + '<div class="segment-row">'
+    + '<button class="' + (followupFilter === 'pending' ? 'segment-btn-active' : 'segment-btn') + '" onclick="setFollowupFilter(\'pending\')">لم يتم التحصيل</button>'
+    + '<button class="' + (followupFilter === 'collected' ? 'segment-btn-active' : 'segment-btn') + '" onclick="setFollowupFilter(\'collected\')">تم التحصيل</button>'
+    + '<button class="' + (followupFilter === 'all' ? 'segment-btn-active' : 'segment-btn') + '" onclick="setFollowupFilter(\'all\')">الكل</button>'
+    + '</div>'
+    + '<div class="preview-box"><div>عدد المعاملات: <b>' + filtered.length + '</b></div>'
+    + '<div>الإجمالي: <b>' + fmtMoney(grandTotal) + '</b></div></div>'
+    + (rows.length === 0 ? '<div class="empty-state">لا توجد معاملات مطابقة لهذا الفلتر.</div>' : '')
+    + '<div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">'
+    + rows.map(buildFollowupClientCard).join('')
+    + '</div>';
+}
+
+function buildFollowupClientCard(row){
+  const c = row.client;
+  const name = c ? c.name : 'عميل محذوف';
+  return '<div class="client-card"><div class="client-card-head"><div>'
+    + '<div class="client-name">' + esc(name) + '</div>'
+    + (c && c.machineNumber ? '<div class="client-machine">رقم المكنة: ' + esc(c.machineNumber) + '</div>' : '')
+    + (c && c.location ? '<div class="client-meta">📍 ' + esc(c.location) + '</div>' : '')
+    + '</div><div class="stat-value" style="color:' + (followupFilter === 'collected' ? '#0B6E4F' : '#C9862B') + '">' + fmtMoney(row.total) + '</div></div>'
+    + '<div class="tx-list">' + row.txs.map(buildFollowupTxRow).join('') + '</div>'
+    + '</div>';
+}
+
+function buildFollowupTxRow(t){
+  return '<div class="tx-row"><div class="tx-note" style="font-weight:700;color:#173B33">' + fmtDateHuman(t.date) + '</div>'
+    + '<div class="tx-amount">' + fmtMoney(t.amountSent) + '</div>'
+    + (t.notes ? '<div class="tx-note">' + esc(t.notes) + '</div>' : '')
+    + '<div style="flex:1"></div>'
+    + '<button class="' + (t.collected ? 'collected-pill' : 'pending-pill') + '" onclick="toggleCollected(\'' + t.id + '\')">' + (t.collected ? '✓ تم التحصيل' : 'قيد الانتظار') + '</button>'
+    + '</div>';
+}
+
+function buildExportTab(){
+  const filtered = getExportFiltered();
+  const total = filtered.reduce((s,t) => s + t.amountSent, 0);
+  const clientOptions = sortedClients().map(c => '<option value="' + c.id + '" ' + (exportClient === c.id ? 'selected' : '') + '>' + esc(c.name) + '</option>').join('');
+  return '<div class="section-title">تصدير بيانات إلى Excel</div>'
+    + '<label class="field-label">العميل</label>'
+    + '<select class="select-field" onchange="setExportClient(this.value)">'
+    + '<option value="all" ' + (exportClient === 'all' ? 'selected' : '') + '>كل العملاء</option>' + clientOptions
+    + '</select>'
+    + '<label class="field-label">الفترة</label>'
+    + '<div class="segment-row">'
+    + '<button class="' + (exportPeriodType === 'day' ? 'segment-btn-active' : 'segment-btn') + '" onclick="setExportPeriodType(\'day\')">يوم</button>'
+    + '<button class="' + (exportPeriodType === 'month' ? 'segment-btn-active' : 'segment-btn') + '" onclick="setExportPeriodType(\'month\')">شهر</button>'
+    + '<button class="' + (exportPeriodType === 'year' ? 'segment-btn-active' : 'segment-btn') + '" onclick="setExportPeriodType(\'year\')">سنة</button>'
+    + '<button class="' + (exportPeriodType === 'all' ? 'segment-btn-active' : 'segment-btn') + '" onclick="setExportPeriodType(\'all\')">الكل</button>'
+    + '</div>'
+    + (exportPeriodType === 'day' ? '<input type="date" class="select-field" value="' + exportDay + '" onchange="setExportDay(this.value)">' : '')
+    + (exportPeriodType === 'month' ? '<input type="month" class="select-field" value="' + exportMonth + '" onchange="setExportMonth(this.value)">' : '')
+    + (exportPeriodType === 'year' ? '<input id="export-year-input" type="number" class="select-field" value="' + exportYear + '" onchange="setExportYear(this.value)">' : '')
+    + '<div class="preview-box"><div>عدد المعاملات المطابقة: <b>' + filtered.length + '</b></div>'
+    + '<div>الإجمالي: <b>' + fmtMoney(total) + '</b></div></div>'
+    + '<button class="export-btn" onclick="doExport()">⬇ تصدير ملف Excel</button>'
+    + '<div class="section-title" style="margin-top:22px">نسخة احتياطية كاملة</div>'
+    + '<div style="font-size:12px;color:#8A9A96;margin-bottom:10px;line-height:1.6">'
+    + 'نسخة احتياطية بكل بيانات التطبيق (العملاء، المعاملات، المناطق) في ملف واحد، تقدر تستخدمها لاسترجاع بياناتك لو حصل أي مشكلة أو غيّرت جهازك. تتنزل داخل مجلد "' + BACKUP_FOLDER + '" جوّه التنزيلات.'
+    + '</div>'
+    + '<button class="export-btn" style="background:#173B33" onclick="doBackupExport()">💾 تنزيل نسخة احتياطية</button>'
+    + '<button class="export-btn" style="background:#fff;color:#0B6E4F;border:1.5px solid #BFE0CE;margin-top:8px" onclick="triggerRestoreBackup()">♻️ استعادة من نسخة احتياطية</button>'
+    + '<input id="restore-backup-input" type="file" accept="application/json,.json" style="display:none" onchange="handleRestoreBackup(event)">';
+}
+
+function buildBottomNav(){
+  return '<div class="bottom-nav">'
+    + '<button class="' + (tab === 'daily' ? 'nav-btn-active' : 'nav-btn') + '" onclick="setTab(\'daily\')"><span>📅</span><span style="font-size:10px">التحصيل اليومي</span></button>'
+    + '<button class="' + (tab === 'clients' ? 'nav-btn-active' : 'nav-btn') + '" onclick="setTab(\'clients\')"><span>👥</span><span style="font-size:10px">العملاء</span></button>'
+    + '<button class="' + (tab === 'followup' ? 'nav-btn-active' : 'nav-btn') + '" onclick="setTab(\'followup\')"><span>🔔</span><span style="font-size:10px">المتابعة</span></button>'
+    + '<button class="' + (tab === 'areas' ? 'nav-btn-active' : 'nav-btn') + '" onclick="setTab(\'areas\')"><span>🗺️</span><span style="font-size:10px">المناطق</span></button>'
+    + '<button class="' + (tab === 'export' ? 'nav-btn-active' : 'nav-btn') + '" onclick="setTab(\'export\')"><span>📊</span><span style="font-size:10px">تصدير Excel</span></button>'
+    + '</div>';
+}
+
+function buildAreaOptionsForClient(currentLocation){
+  let names = sortedAreas().map(a => a.name);
+  if (currentLocation && !names.includes(currentLocation)) names = [currentLocation].concat(names);
+  let opts = '<option value=""' + (currentLocation ? '' : ' selected') + '>بدون منطقة</option>';
+  opts += names.map(n => '<option value="' + esc(n) + '" ' + (n === currentLocation ? 'selected' : '') + '>' + esc(n) + '</option>').join('');
+  opts += '<option value="__new__">+ إضافة منطقة جديدة</option>';
+  return opts;
+}
+function handleAreaSelectChange(sel){
+  if (sel.value !== '__new__') return;
+  const name = prompt('اسم المنطقة الجديدة:');
+  if (name && name.trim()) {
+    const trimmed = name.trim();
+    if (!areas.some(a => a.name === trimmed)) {
+      areas.push({id: uid('a'), name: trimmed});
+      saveData();
+    }
+    const opt = document.createElement('option');
+    opt.value = trimmed; opt.textContent = trimmed;
+    sel.insertBefore(opt, sel.lastElementChild);
+    sel.value = trimmed;
+  } else {
+    sel.value = '';
+  }
+}
+
+function buildClientModal(){
+  const c = editingClientId ? clients.find(x => x.id === editingClientId) : null;
+  const hasLoc = c && c.lat != null && c.lng != null;
+  return '<div class="modal-overlay" onclick="closeClientModal()"><div class="modal-card" onclick="event.stopPropagation()">'
+    + '<div class="modal-head"><div class="modal-title">' + (c ? 'تعديل بيانات العميل' : 'عميل جديد') + '</div>'
+    + '<button class="icon-btn" onclick="closeClientModal()">✕</button></div>'
+    + '<label class="field-label">اسم العميل</label>'
+    + '<input id="cf-name" class="select-field" value="' + (c ? esc(c.name) : '') + '" placeholder="مثال: أحمد محمد">'
+    + '<label class="field-label">رقم المكنة</label>'
+    + '<input id="cf-machine" class="select-field" value="' + (c ? esc(c.machineNumber||'') : '') + '" placeholder="مثال: 12">'
+    + '<label class="field-label">المنطقة</label>'
+    + '<select id="cf-location" class="select-field" onchange="handleAreaSelectChange(this)">' + buildAreaOptionsForClient(c ? (c.location||'') : '') + '</select>'
+    + '<label class="field-label">العنوان (اختياري)</label>'
+    + '<input id="cf-address" class="select-field" value="' + (c ? esc(c.address||'') : '') + '" placeholder="مثال: شارع 10 - عمارة 5 - الدور 3">'
+    + '<label class="field-label">رقم الهاتف (اختياري)</label>'
+    + '<input id="cf-phone" class="select-field" value="' + (c ? esc(c.phone||'') : '') + '" placeholder="01xxxxxxxxx">'
+    + '<label class="field-label">موقع العميل (لاستخدامه في الجولات)</label>'
+    + '<input id="cf-lat" type="hidden" value="' + (hasLoc ? c.lat : '') + '">'
+    + '<input id="cf-lng" type="hidden" value="' + (hasLoc ? c.lng : '') + '">'
+    + '<button type="button" id="location-btn" class="location-btn" onclick="captureLocation()">' + (hasLoc ? '✅ الموقع مسجّل — اضغط للتحديث' : '📍 سجّل موقعي الحالي') + '</button>'
+    + '<button class="export-btn" onclick="saveClientForm()">✓ حفظ</button>'
+    + '</div></div>';
+}
+
+function buildAmountModal(){
+  const c = clients.find(x => x.id === amountModalClientId);
+  if (!c) return '';
+  return '<div class="modal-overlay" onclick="closeAmountModal()"><div class="modal-card" onclick="event.stopPropagation()">'
+    + '<div class="modal-head"><div class="modal-title">إرسال مبلغ لـ ' + esc(c.name) + '</div>'
+    + '<button class="icon-btn" onclick="closeAmountModal()">✕</button></div>'
+    + '<div style="font-size:12px;color:#8A9A96;margin-bottom:8px">🕐 ' + fmtDateHuman(selectedDate) + '</div>'
+    + '<label class="field-label">المبلغ المرسل (ج.م)</label>'
+    + '<input id="am-amount" type="number" class="select-field" placeholder="0.00" autofocus>'
+    + '<label class="field-label">ملاحظات (اختياري)</label>'
+    + '<input id="am-note" class="select-field" placeholder="مثال: دفعة أولى">'
+    + '<button class="export-btn" onclick="saveAmountForm()">✓ حفظ المعاملة</button>'
+    + '</div></div>';
+}
+
+function buildAreaModal(){
+  const a = editingAreaId ? areas.find(x => x.id === editingAreaId) : null;
+  return '<div class="modal-overlay" onclick="closeAreaModal()"><div class="modal-card" onclick="event.stopPropagation()">'
+    + '<div class="modal-head"><div class="modal-title">' + (a ? 'تعديل المنطقة' : 'منطقة جديدة') + '</div>'
+    + '<button class="icon-btn" onclick="closeAreaModal()">✕</button></div>'
+    + '<label class="field-label">اسم المنطقة</label>'
+    + '<input id="af-name" class="select-field" value="' + (a ? esc(a.name) : '') + '" placeholder="مثال: حي الأربعين">'
+    + '<button class="export-btn" onclick="saveAreaForm()">✓ حفظ</button>'
+    + '</div></div>';
+}
+
+/* ---------------- Init ---------------- */
+loadData();
+render();
+refreshMyLocation(true);
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch((e) => console.log('SW registration failed', e));
+  });
+}
+</script>
+</body>
+</html>
