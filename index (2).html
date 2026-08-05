@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
+<meta content="#14201C" name="theme-color"/>
+<meta content="yes" name="mobile-web-app-capable"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
+<meta content="الميداني Pro" name="apple-mobile-web-app-title"/>
+<title>جامع البيانات الميدانية - النسخة المطورة 2.4</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="icon" href="icon-192.png" type="image/png"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://unpkg.com/tesseract.js@v5.0.2/dist/tesseract.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800&family=Tajawal:wght@400;500;700&display=swap');
+  
+  * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; transition: all 0.2s ease; }
+  html, body { margin: 0; padding: 0; min-height: 100vh; background: radial-gradient(circle at top, #14201C 0%, #050807 100%); background-attachment: fixed; color: #F2F4F1; }
+  
+  .app-shell { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; position: relative; }
+  
+  .glass {
+    background: rgba(27, 41, 37, 0.45);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+
+  .header { padding: 20px 16px 15px; border-radius: 0 0 24px 24px; position: sticky; top: 0; z-index: 100; margin-bottom: 10px; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand-ring { background: #1D9E75; border-radius: 10px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 0 15px rgba(29, 158, 117, 0.3); }
+  .brand-title { font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 15px; color: #F2F4F1; }
+  .brand-sub { font-size: 10px; color: #7C8C86; margin-top: 2px; }
+  
+  .date-picker-trigger { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
+  
+  .header-stats { display: flex; gap: 8px; margin-top: 16px; overflow-x: auto; padding-bottom: 4px; }
+  .header-stat { flex: 1; min-width: 80px; background: rgba(255,255,255,0.03); border-radius: 14px; padding: 12px 8px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+  .header-stat-num { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
+  .header-stat-label { font-size: 10px; color: #7C8C86; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .body { flex: 1; padding: 10px 14px 100px; }
+
+  .section-card, .followup-card { border-radius: 20px; padding: 18px; margin-bottom: 16px; position: relative; overflow: hidden; }
+  .section-title { font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 15px; color: #F2F4F1; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+  
+  .field-label { font-size: 12px; color: #7C8C86; font-weight: 700; margin-top: 14px; margin-bottom: 6px; display: block; }
+  .select-field { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); font-size: 14px; color: #F2F4F1; }
+  .select-field:focus { outline: none; border-color: #1D9E75; background: rgba(0,0,0,0.3); }
+  
+  .vr-chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .vr-chip { border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color: #B9C4BF; border-radius: 12px; padding: 10px 14px; font-size: 13px; font-weight: 700; cursor: pointer; flex: 1; min-width: 80px; text-align: center; position: relative; }
+  .vr-chip.vr-active { border-width: 1.5px; }
+  .vr-chip-down.vr-active { background: #1D9E75; color: #000; border-color: #1D9E75; }
+  .vr-chip-active.vr-active { background: #378ADD; color: #fff; border-color: #378ADD; }
+  .vr-chip-think.vr-active { background: #EF9F27; color: #000; border-color: #EF9F27; }
+  .vr-chip-reject.vr-active { background: #E24B4A; color: #fff; border-color: #E24B4A; }
+  .vr-chip-installed.vr-active { background: #A855F7; color: #fff; border-color: #A855F7; }
+
+  .delete-area-btn { position: absolute; top: -5px; left: -5px; background: #E24B4A; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; border: 2px solid #050807; display: flex; align-items: center; justify-content: center; z-index: 5; }
+
+  .primary-btn { width: 100%; margin-top: 16px; background: #1D9E75; color: #000; border: none; border-radius: 14px; padding: 14px 0; font-size: 15px; font-weight: 800; box-shadow: 0 0 15px rgba(29, 158, 117, 0.4); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+  .primary-btn:active { transform: scale(0.98); }
+  
+  .secondary-btn { background: #378ADD; color: #fff; box-shadow: 0 0 15px rgba(55, 138, 221, 0.3); }
+
+  .export-btn-outline { width: 100%; background: transparent; color: #5DCAA5; border: 1px solid rgba(93, 202, 165, 0.3); border-radius: 12px; padding: 12px 0; font-size: 14px; font-weight: 700; margin-top: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+  .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(20, 32, 28, 0.85); backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.05); display: flex; padding: 10px 8px calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 1000; }
+  .nav-btn { flex: 1; background: transparent; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #7C8C86; font-size: 10px; cursor: pointer; }
+  .nav-btn-icon { font-size: 18px; margin-bottom: 2px; }
+  .nav-btn.active { color: #5DCAA5; }
+
+  .chart-container { position: relative; height: 180px; display: flex; align-items: center; justify-content: center; margin: 20px 0; }
+  .circular-chart { width: 140px; height: 140px; transform: rotate(-90deg); }
+  .circle-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 3; }
+  .circle-fill { fill: none; stroke: #1D9E75; stroke-width: 3; stroke-linecap: round; }
+  .chart-center { position: absolute; text-align: center; }
+  .chart-val { font-size: 28px; font-weight: 800; color: #F2F4F1; }
+  .chart-lbl { font-size: 11px; color: #7C8C86; }
+
+  .search-bar { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .search-input { background: transparent; border: none; color: #fff; flex: 1; font-size: 14px; outline: none; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; display: none; }
+  .modal-content { width: 100%; max-width: 400px; max-height: 85vh; overflow-y: auto; border-radius: 24px; }
+
+  .entry-row { display: flex; gap: 12px; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .entry-thumb { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
+  .visit-badge { border-radius: 8px; padding: 3px 8px; font-size: 10px; font-weight: 700; margin-right: 6px; }
+  .visit-badge-down { background: rgba(29, 158, 117, 0.2); color: #5DCAA5; }
+  .visit-badge-active { background: rgba(55, 138, 221, 0.2); color: #7CB2EE; }
+  .visit-badge-think { background: rgba(239, 159, 39, 0.2); color: #EF9F27; }
+  .visit-badge-reject { background: rgba(226, 75, 74, 0.2); color: #F0908F; }
+  .visit-badge-installed { background: rgba(168, 85, 247, 0.2); color: #C99BFA; }
+
+  .photo-btn { width: 100%; border: 1.5px dashed rgba(255,255,255,0.2); background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; color: #B9C4BF; cursor: pointer; }
+  
+  .card-input-label { font-size: 10px; color: #7C8C86; margin-bottom: 2px; margin-top: 8px; display: block; }
+  .card-editable-input { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); color: #fff; font-size: 12px; padding: 6px 10px; border-radius: 8px; outline: none; }
+  .card-editable-input:focus { border-color: #1D9E75; }
+
+  .action-icon-btn { background: none; border: none; padding: 8px; cursor: pointer; font-size: 14px; }
+  .edit-mode-indicator { background: #EF9F27; color: #000; padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; margin-bottom: 10px; display: inline-block; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<!-- Modals -->
+<div class="modal-overlay" id="ocr-modal">
+<div class="modal-content glass" style="padding: 24px;">
+<h3 class="brand-title" style="margin-bottom: 15px;">مراجعة البيانات المستخرجة</h3>
+<div id="ocr-results-list"></div>
+<div style="display: flex; gap: 10px; margin-top: 20px;">
+<button class="primary-btn" onclick="confirmOCR()">✅ إضافة للبطاقات</button>
+<button class="primary-btn" onclick="closeOCR()" style="background: rgba(255,255,255,0.1); color: #fff; box-shadow: none;">إلغاء</button>
+</div>
+</div>
+</div>
+<div class="modal-overlay" id="paste-modal">
+<div class="modal-content glass" style="padding: 24px;">
+<h3 class="brand-title" style="margin-bottom: 15px;">نسخ الرسائل</h3>
+<textarea class="select-field" id="paste-input" placeholder="الصق نص الرسالة هنا (اسم المحل، رقم المكنة، التليفون)..." style="min-height: 150px;"></textarea>
+<div style="display: flex; gap: 10px; margin-top: 20px;">
+<button class="primary-btn" onclick="processPaste()">✨ استخراج وإضافة</button>
+<button class="primary-btn" onclick="document.getElementById('paste-modal').style.display='none'" style="background: rgba(255,255,255,0.1); color: #fff; box-shadow: none;">إلغاء</button>
+</div>
+</div>
+</div>
+<script>
+/* ---------------- State & Helpers ---------------- */
+const WEEKDAYS = ["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+const MONTHS = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+const VISIT_RESULTS = {
+  down:     {label: 'إنزال',       chipClass: 'vr-chip-down',    badgeClass: 'visit-badge-down',    emoji: '✅', color: '#5DCAA5'},
+  active:   {label: 'شغال معانا',  chipClass: 'vr-chip-active',  badgeClass: 'visit-badge-active',  emoji: '🤝', color: '#7CB2EE'},
+  thinking: {label: 'هيفكر',       chipClass: 'vr-chip-think',   badgeClass: 'visit-badge-think',   emoji: '⏳', color: '#EF9F27'},
+  rejected: {label: 'رفض',         chipClass: 'vr-chip-reject',  badgeClass: 'visit-badge-reject',  emoji: '❌', color: '#F0908F'},
+  installed:{label: 'تم الإنزال',  chipClass: 'vr-chip-installed', badgeClass: 'visit-badge-installed', emoji: '📦', color: '#C99BFA'}
+};
+
+let viewDate = new Date().toISOString().split('T')[0];
+let areas = [];
+let entries = [];
+let callCenterCards = [];
+let followUps = [];
+let currentAreaId = '';
+let currentPhoto = null;
+let currentVisitResult = '';
+let currentTab = 'home';
+let ccSearchQuery = '';
+let ocrDrafts = [];
+let convertingCallCenterCardId = null;
+let editingEntryId = null;
+let locatingInProgress = false;
+
+let entryDraft = {shopName: '', clientName: '', phone: '', address: '', notes: '', locationLink: '', machineNumber: ''};
+let areaDraft = '';
+
+function uid(p){ return p + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
+function esc(s){ return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtTime(iso){ return new Date(iso).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'}); }
+
+/* ---------------- Storage (IndexedDB) ---------------- */
+const DB_NAME = 'fielddata-db';
+const DB_VERSION = 1;
+let _dbPromise = null;
+
+function openDB(){
+  if (_dbPromise) return _dbPromise;
+  _dbPromise = new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('global')) db.createObjectStore('global');
+      if (!db.objectStoreNames.contains('daily')) db.createObjectStore('daily');
+    };
+    req.onsuccess = (e) => resolve(e.target.result);
+    req.onerror = (e) => reject(e.target.error);
+  });
+  return _dbPromise;
+}
+function idbGet(store, key){
+  return openDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  }));
+}
+function idbSet(store, key, value){
+  return openDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).put(value, key);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  }));
+}
+function idbGetAllEntries(store){
+  return openDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const os = tx.objectStore(store);
+    const keysReq = os.getAllKeys();
+    const valsReq = os.getAll();
+    tx.oncomplete = () => {
+      const out = [];
+      for (let i = 0; i < keysReq.result.length; i++) out.push({key: keysReq.result[i], value: valsReq.result[i]});
+      resolve(out);
+    };
+    tx.onerror = () => reject(tx.error);
+  }));
+}
+
+/* one-time migration from the old localStorage version so نفس البيانات القديمة متضيعش */
+async function migrateFromLocalStorageIfNeeded(){
+  try {
+    const already = await idbGet('global', 'migrated');
+    if (already) return;
+    const rawGlobal = localStorage.getItem('fielddata-global');
+    if (rawGlobal) await idbSet('global', 'main', JSON.parse(rawGlobal));
+    for (let i = 0; i < localStorage.length; i++){
+      const key = localStorage.key(i);
+      if (key && key.startsWith('fielddata-data-')){
+        const dateStr = key.replace('fielddata-data-', '');
+        await idbSet('daily', dateStr, JSON.parse(localStorage.getItem(key)));
+      }
+    }
+    await idbSet('global', 'migrated', true);
+  } catch (e) { console.error('Migration error', e); }
+}
+
+async function loadData(){
+  try {
+    const g = await idbGet('global', 'main');
+    if (g) {
+      areas = g.areas || [];
+      callCenterCards = g.callCenterCards || [];
+      followUps = g.followUps || [];
+    }
+    const d = await idbGet('daily', viewDate);
+    if (d) {
+      entries = d.entries || [];
+      currentAreaId = d.currentAreaId || '';
+    } else {
+      entries = [];
+      currentAreaId = '';
+    }
+  } catch (e) { console.error('Load Error', e); }
+}
+
+let saveErrorShown = false;
+async function saveData(){
+  try {
+    await idbSet('global', 'main', {areas, callCenterCards, followUps});
+    await idbSet('daily', viewDate, {entries, currentAreaId});
+    saveErrorShown = false;
+    maybeAutoBackup();
+  } catch (e) {
+    console.error('Storage Error', e);
+    if (!saveErrorShown) {
+      saveErrorShown = true;
+      alert('⚠️ حصل خطأ في حفظ البيانات على الجهاز. خد نسخة احتياطية فورًا من شاشة "التقارير" لحد ما تتأكد إن المشكلة اتحلت.');
+    }
+  }
+}
+
+async function changeDate(newDate) {
+  await saveData();
+  viewDate = newDate;
+  await loadData();
+  render();
+}
+
+/* ---------------- Actions ---------------- */
+function setTab(tab){ currentTab = tab; render(); }
+
+function addArea(){
+  if(!areaDraft) return;
+  areas.push({id: uid('a'), name: areaDraft});
+  areaDraft = '';
+  saveData(); render();
+}
+
+function deleteArea(id, e){
+  e.stopPropagation();
+  if(!confirm('هل أنت متأكد من حذف هذه المنطقة؟')) return;
+  areas = areas.filter(a => a.id !== id);
+  if(currentAreaId === id) currentAreaId = '';
+  saveData(); render();
+}
+
+function selectArea(id){ currentAreaId = (currentAreaId === id) ? '' : id; saveData(); render(); }
+
+function handlePhotoInput(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX_DIM = 1280;
+      let w = img.width, h = img.height;
+      const scale = Math.min(1, MAX_DIM / Math.max(w, h));
+      w = Math.round(w * scale); h = Math.round(h * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      currentPhoto = { dataUrl, width: w, height: h };
+      render();
+    };
+    img.onerror = () => { currentPhoto = { dataUrl: e.target.result }; render(); };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function requestLocation(){
+  if (!navigator.geolocation) { alert('الجهاز ده مش بيدعم تحديد الموقع'); return; }
+  locatingInProgress = true;
+  render();
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    const lat = pos.coords.latitude, lon = pos.coords.longitude;
+    entryDraft.locationLink = 'https://www.google.com/maps?q=' + lat + ',' + lon;
+    try {
+      const res = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&accept-language=ar&zoom=18');
+      const data = await res.json();
+      entryDraft.address = (data && data.display_name) ? data.display_name : (lat.toFixed(6) + ', ' + lon.toFixed(6));
+    } catch (err) {
+      entryDraft.address = lat.toFixed(6) + ', ' + lon.toFixed(6);
+    }
+    locatingInProgress = false;
+    render();
+  }, (err) => {
+    locatingInProgress = false;
+    alert('تعذر تحديد الموقع: ' + (err && err.message ? err.message : 'تأكد من تفعيل صلاحية الموقع للمتصفح'));
+    render();
+  }, {enableHighAccuracy: true, timeout: 15000});
+}
+function clearLocation(){
+  entryDraft.locationLink = '';
+  render();
+}
+
+function editEntry(id) {
+    const entry = entries.find(e => e.id === id);
+    if(!entry) return;
+    editingEntryId = id;
+    entryDraft = { 
+        shopName: entry.shopName, 
+        clientName: entry.clientName, 
+        phone: entry.phone, 
+        address: entry.address, 
+        notes: entry.notes,
+        locationLink: entry.locationLink || '',
+        machineNumber: entry.machineNumber || ''
+    };
+    currentVisitResult = entry.visitResult;
+    currentAreaId = entry.areaId;
+    currentPhoto = entry.photo;
+    window.scrollTo({top: 0, behavior: 'smooth'});
+    render();
+}
+
+function cancelEdit() {
+    editingEntryId = null;
+    entryDraft = {shopName: '', clientName: '', phone: '', address: '', notes: '', locationLink: '', machineNumber: ''};
+    currentVisitResult = '';
+    currentPhoto = null;
+    render();
+}
+
+function addEntry(){
+  if (!currentAreaId) { alert('اختر منطقة أولاً'); return; }
+  if (!entryDraft.shopName && !currentVisitResult) { alert('أدخل بيانات الزيارة'); return; }
+  
+  const entryData = {
+    id: editingEntryId || uid('e'),
+    areaId: currentAreaId,
+    shopName: entryDraft.shopName,
+    clientName: entryDraft.clientName,
+    phone: entryDraft.phone,
+    address: entryDraft.address,
+    locationLink: entryDraft.locationLink || '',
+    machineNumber: entryDraft.machineNumber || '',
+    visitResult: currentVisitResult,
+    notes: entryDraft.notes,
+    photo: currentPhoto,
+    time: editingEntryId ? entries.find(e => e.id === editingEntryId).time : new Date().toISOString()
+  };
+
+  if (editingEntryId) {
+      entries = entries.map(e => e.id === editingEntryId ? entryData : e);
+  } else {
+      entries.push(entryData);
+  }
+
+  if (convertingCallCenterCardId && !editingEntryId) {
+    const c = callCenterCards.find(x => x.id === convertingCallCenterCardId);
+    if (c) c.convertedToVisit = true;
+    convertingCallCenterCardId = null;
+  }
+
+  /* عملاء "إنزال" بيتحطوا في المتابعة تلقائي، وباقي النتائج تفضل تحتاج تحويل يدوي بزرار */
+  if (entryData.visitResult === 'down') {
+    addToFollowUpFromEntry(entryData);
+  }
+
+  editingEntryId = null;
+  currentPhoto = null; currentVisitResult = '';
+  entryDraft = {shopName: '', clientName: '', phone: '', address: '', notes: '', locationLink: '', machineNumber: ''};
+  saveData(); render();
+}
+
+/* ---------------- Follow-up (متابعة) ---------------- */
+function addToFollowUpFromEntry(entryData){
+  const existing = followUps.find(f => f.entryId === entryData.id);
+  if (existing) {
+    existing.shopName = entryData.shopName;
+    existing.clientName = entryData.clientName;
+    existing.phone = entryData.phone;
+    existing.areaId = entryData.areaId;
+    existing.visitResult = entryData.visitResult;
+    existing.notes = entryData.notes;
+    existing.machineNumber = entryData.machineNumber || '';
+    if (existing.reminderAt === undefined) existing.reminderAt = '';
+    return existing;
+  }
+  const item = {
+    id: uid('f'),
+    entryId: entryData.id,
+    shopName: entryData.shopName,
+    clientName: entryData.clientName,
+    phone: entryData.phone,
+    areaId: entryData.areaId,
+    visitResult: entryData.visitResult,
+    notes: entryData.notes,
+    machineNumber: entryData.machineNumber || '',
+    reminderAt: '',
+    addedAt: new Date().toISOString()
+  };
+  followUps.push(item);
+  return item;
+}
+
+/* تحديث نتيجة عنصر متابعة لـ "إنزال" - من غير ما نشيله من القائمة */
+function markFollowUpDown(id){
+  const f = followUps.find(x => x.id === id);
+  if (!f) return;
+  f.visitResult = 'down';
+  saveData(); render();
+}
+
+/* ضبط/مسح موعد تذكير لعنصر متابعة */
+function setReminder(id, value){
+  const f = followUps.find(x => x.id === id);
+  if (!f) return;
+  f.reminderAt = value ? new Date(value).toISOString() : '';
+  saveData(); render();
+}
+function clearReminder(id){
+  const f = followUps.find(x => x.id === id);
+  if (!f) return;
+  f.reminderAt = '';
+  saveData(); render();
+}
+function fmtReminder(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('ar-EG') + ' ' + d.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'});
+}
+
+function addToFollowUp(entryId){
+  const e = entries.find(x => x.id === entryId);
+  if (!e) return;
+  addToFollowUpFromEntry(e);
+  saveData(); render();
+}
+
+function isInFollowUp(entryId){
+  return followUps.some(f => f.entryId === entryId);
+}
+
+function removeFollowUp(id){
+  if (!confirm('تأكيد إن المتابعة خلصت وهيتشال من القائمة؟')) return;
+  followUps = followUps.filter(f => f.id !== id);
+  saveData(); render();
+}
+
+/* ---------------- Excel Export Logic ---------------- */
+async function buildAndDownloadWorkbook(data, filename, includeDateColumn) {
+    if (data.length === 0) { alert('لا توجد بيانات'); return; }
+
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('تقرير', {views: [{rightToLeft: true}]});
+
+    const COLS = [];
+    COLS.push({header: 'م', key: 'idx', width: 5});
+    if (includeDateColumn) COLS.push({header: 'التاريخ', key: 'date', width: 12});
+    COLS.push({header: 'المنطقة', key: 'area', width: 18});
+    COLS.push({header: 'اسم المحل', key: 'shop', width: 22});
+    COLS.push({header: 'اسم العميل', key: 'client', width: 20});
+    COLS.push({header: 'رقم التليفون', key: 'phone', width: 15});
+    COLS.push({header: 'العنوان', key: 'address', width: 24});
+    COLS.push({header: 'رقم المكنة', key: 'machineNumber', width: 14});
+    COLS.push({header: 'الموقع', key: 'location', width: 12});
+    COLS.push({header: 'نتيجة الزيارة', key: 'visitResult', width: 14});
+    COLS.push({header: 'ملاحظات', key: 'notes', width: 26});
+    COLS.push({header: 'الوقت', key: 'time', width: 10});
+    COLS.push({header: 'الصورة', key: 'photo', width: 18});
+    ws.columns = COLS;
+    const COL_COUNT = COLS.length;
+    const PHOTO_COL_INDEX = COL_COUNT - 1;
+    const LOCATION_COL_INDEX = COLS.findIndex(c => c.key === 'location') + 1;
+
+    const headerRow = ws.getRow(1);
+    headerRow.font = {bold: true, color: {argb: 'FFFFFFFF'}};
+    headerRow.alignment = {horizontal: 'center', vertical: 'middle'};
+    headerRow.eachCell((cell) => {
+        cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FF0B6E4F'}};
+    });
+    headerRow.height = 22;
+
+    const sorted = data.slice().sort((a,b) => new Date(a.time) - new Date(b.time));
+    const successEntries = sorted.filter(e => e.visitResult === 'down' || e.visitResult === 'active' || e.visitResult === 'installed');
+    const otherEntries = sorted.filter(e => e.visitResult !== 'down' && e.visitResult !== 'active' && e.visitResult !== 'installed');
+    const THUMB = 100;
+    let rowCursor = 2;
+    let globalIdx = 0;
+
+    function addSectionTitle(title, fillArgb, fontArgb){
+        const r = ws.getRow(rowCursor);
+        r.getCell(1).value = title;
+        ws.mergeCells(rowCursor, 1, rowCursor, COL_COUNT);
+        r.font = {bold: true, size: 12, color: {argb: fontArgb}};
+        r.alignment = {horizontal: 'center', vertical: 'middle'};
+        r.height = 20;
+        r.eachCell({includeEmpty: true}, (cell) => {
+            cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: fillArgb}};
+        });
+        rowCursor++;
+    }
+
+    function addEntryRows(items, rowFillArgb){
+        items.forEach((e) => {
+            const area = areas.find(a => a.id === e.areaId);
+            const vr = VISIT_RESULTS[e.visitResult];
+            globalIdx++;
+            const thisRowNum = rowCursor;
+            const row = ws.getRow(thisRowNum);
+            const rowData = {
+                idx: globalIdx,
+                area: area ? area.name : '-',
+                shop: e.shopName || '-',
+                client: e.clientName || '-',
+                phone: e.phone || '-',
+                address: e.address || '-',
+                machineNumber: e.machineNumber || '-',
+                visitResult: vr ? (vr.emoji + ' ' + vr.label) : '-',
+                notes: e.notes || '-',
+                time: fmtTime(e.time)
+            };
+            if (includeDateColumn) rowData.date = new Date(e.time).toLocaleDateString('ar-EG');
+            row.values = rowData;
+            if (e.locationLink) {
+                row.getCell(LOCATION_COL_INDEX).value = {text: '📍 الموقع', hyperlink: e.locationLink};
+                row.getCell(LOCATION_COL_INDEX).font = {color: {argb: 'FF1155CC'}, underline: true};
+            }
+            row.alignment = {vertical: 'middle', wrapText: true, horizontal: 'right'};
+            row.height = 78;
+            if (rowFillArgb) {
+                row.eachCell({includeEmpty: true}, (cell) => {
+                    if (!cell.font || !cell.font.underline) {
+                        cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: rowFillArgb}};
+                    }
+                });
+            }
+            if (e.photo && e.photo.dataUrl) {
+                const base64 = e.photo.dataUrl.split(',')[1];
+                const imgId = wb.addImage({base64, extension: 'jpeg'});
+                let w = e.photo.width || THUMB, h = e.photo.height || THUMB;
+                const scale = Math.min(THUMB / w, THUMB / h, 1);
+                const ext = {width: Math.round(w * scale), height: Math.round(h * scale)};
+                ws.addImage(imgId, {tl: {col: PHOTO_COL_INDEX, row: thisRowNum - 1}, ext, editAs: 'oneCell'});
+            }
+            rowCursor++;
+        });
+    }
+
+    addSectionTitle('✅ إنزال / 🤝 شغال معانا (' + successEntries.length + ')', 'FFDCEFE1', 'FF0B6E4F');
+    if (successEntries.length === 0) {
+        const r = ws.getRow(rowCursor);
+        r.getCell(1).value = 'لا توجد سجلات في هذا القسم';
+        ws.mergeCells(rowCursor, 1, rowCursor, COL_COUNT);
+        r.alignment = {horizontal: 'center'};
+        r.font = {italic: true, color: {argb: 'FF8A9A96'}};
+        rowCursor++;
+    } else {
+        addEntryRows(successEntries, 'FFF3FAF6');
+    }
+    rowCursor++;
+    addSectionTitle('⏳ هيفكر / ❌ رفض (' + otherEntries.length + ')', 'FFFBE9D8', 'FFA66A00');
+    if (otherEntries.length === 0) {
+        const r = ws.getRow(rowCursor);
+        r.getCell(1).value = 'لا توجد سجلات في هذا القسم';
+        ws.mergeCells(rowCursor, 1, rowCursor, COL_COUNT);
+        r.alignment = {horizontal: 'center'};
+        r.font = {italic: true, color: {argb: 'FF8A9A96'}};
+        rowCursor++;
+    } else {
+        addEntryRows(otherEntries, 'FFFDF6EC');
+    }
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+}
+
+function exportDaily() {
+    buildAndDownloadWorkbook(entries, `تقرير_اليوم_${viewDate}.xlsx`, false);
+}
+
+async function exportPeriodic(days) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+
+    let allEntries = [];
+    const all = await idbGetAllEntries('daily');
+    all.forEach(({key, value}) => {
+        if (key !== 'migrated' && new Date(key) >= cutoff && value && value.entries) {
+            allEntries = allEntries.concat(value.entries);
+        }
+    });
+    allEntries.sort((a,b) => new Date(a.time) - new Date(b.time));
+    buildAndDownloadWorkbook(allEntries, `تقرير_${days}_يوم.xlsx`, true);
+}
+
+/* ---------------- Backup / Restore to phone Downloads ---------------- */
+const BACKUP_FOLDER = 'احتياطي الداتا';
+const BACKUP_FILENAME = 'نسخة احتياطية - جامع البيانات الميدانية.json';
+const BACKUP_PATH = BACKUP_FOLDER + '/' + BACKUP_FILENAME;
+const AUTO_BACKUP_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // مرة كل أسبوع بحد أقصى، مش يوم بيوم
+
+/* الفاصل الزمني بيتقاس من تاريخ محفوظ داخل IndexedDB نفسها (مش متغير في الذاكرة)
+   عشان لو أندرويد قفل الصفحة في الخلفية (زي وقت فتح الكاميرا) ورجعت تاني، النظام يفتكر آخر مرة أخد فيها نسخة فعليًا
+   ومايكررش التنزيل من غير داعي. */
+async function maybeAutoBackup(){
+  try {
+    const last = await idbGet('global', 'lastBackupAt');
+    const now = Date.now();
+    if (!last || (now - new Date(last).getTime()) > AUTO_BACKUP_INTERVAL_MS) {
+      await idbSet('global', 'lastBackupAt', new Date().toISOString());
+      await downloadBackupFile(true);
+    }
+  } catch (e) { console.error('Auto backup check failed', e); }
+}
+
+async function downloadBackupFile(silent){
+  try {
+    const g = (await idbGet('global', 'main')) || {areas: [], callCenterCards: [], followUps: []};
+    const all = await idbGetAllEntries('daily');
+    const daily = {};
+    all.forEach(({key, value}) => { daily[key] = value; });
+    const backup = { version: 1, savedAt: new Date().toISOString(), global: g, daily };
+    const blob = new Blob([JSON.stringify(backup)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = BACKUP_PATH;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    if (!silent) alert('✅ اتحفظت نسخة احتياطية باسم "' + BACKUP_FILENAME + '" جوه فولدر "' + BACKUP_FOLDER + '" داخل مجلد التنزيلات (Downloads) بالهاتف.\n\nملحوظة: لو الملف ده موجود قبل كده، أندرويد ممكن يحفظه باسم فيه (1) بدل ما يستبدله — دي سياسة أمان من المتصفح نفسه ومقدرش أتحكم فيها.');
+  } catch (e) {
+    console.error('Backup error', e);
+    if (!silent) alert('❌ حصل خطأ أثناء أخد النسخة الاحتياطية');
+  }
+}
+
+async function importBackupFile(event){
+  const file = event.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const backup = JSON.parse(text);
+    if (!backup || !backup.daily) { alert('ملف النسخة الاحتياطية مش صالح'); return; }
+    if (!confirm('استيراد النسخة الاحتياطية دي هيدمج البيانات مع الموجود حاليًا (وهيستبدل بيانات نفس اليوم لو موجودة). متأكد؟')) return;
+    if (backup.global) await idbSet('global', 'main', backup.global);
+    for (const dateKey in backup.daily) { await idbSet('daily', dateKey, backup.daily[dateKey]); }
+    await loadData();
+    render();
+    alert('✅ تم استيراد النسخة الاحتياطية بنجاح');
+  } catch (e) {
+    console.error(e);
+    alert('❌ فشل استيراد الملف، تأكد إنه ملف نسخة احتياطية صحيح');
+  } finally {
+    event.target.value = '';
+  }
+}
+
+
+/* ---------------- UI Builders ---------------- */
+function buildHeader(){
+  const counts = {down: 0, active: 0, thinking: 0, rejected: 0, installed: 0};
+  entries.forEach(e => { if(counts[e.visitResult] !== undefined) counts[e.visitResult]++; });
+  const d = new Date(viewDate);
+  const dateStr = WEEKDAYS[d.getDay()] + ' ' + d.getDate() + ' ' + MONTHS[d.getMonth()];
+  return `
+    <div class="header glass">
+      <div class="header-top">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div class="brand-ring">📋</div>
+          <div>
+            <div class="brand-title">الميداني Pro</div>
+            <div class="brand-sub">نسخة 2.4</div>
+          </div>
+        </div>
+        <div class="date-picker-trigger" onclick="document.getElementById('global-date').showPicker()">
+          <span style="font-size:12px; font-weight:700;">${dateStr}</span>
+          <span>📅</span>
+          <input type="date" id="global-date" style="position:absolute; visibility:hidden; width:0;" value="${viewDate}" onchange="changeDate(this.value)">
+        </div>
+      </div>
+      <div class="header-stats">
+        ${Object.keys(VISIT_RESULTS).map(k => `
+          <div class="header-stat">
+            <div class="header-stat-num" style="color:${VISIT_RESULTS[k].color}">${counts[k]}</div>
+            <div class="header-stat-label">${VISIT_RESULTS[k].label}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function buildHome(){
+  const sortedEntries = [...entries].reverse();
+  return `
+    <div class="section-card glass">
+      <div class="section-title"><span>المناطق</span></div>
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <input class="select-field" placeholder="منطقة جديدة..." value="${esc(areaDraft)}" oninput="areaDraft=this.value">
+        <button class="primary-btn" style="margin-top:0; width:60px;" onclick="addArea()">+</button>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; gap:10px;">
+        ${areas.map(a => `
+          <div class="vr-chip ${a.id === currentAreaId ? 'vr-chip-down vr-active' : ''}" onclick="selectArea('${a.id}')">
+            <button class="delete-area-btn" onclick="deleteArea('${a.id}', event)">✕</button>
+            ${esc(a.name)}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="section-card glass">
+      <div class="section-title">
+        <span>${editingEntryId ? 'تعديل الزيارة' : 'زيارة جديدة'}</span>
+        ${editingEntryId ? `<button class="action-icon-btn" onclick="cancelEdit()" style="color:#F0908F; font-size:11px;">إلغاء التعديل</button>` : ''}
+      </div>
+      
+      ${editingEntryId ? `<div class="edit-mode-indicator">جاري تعديل بيانات محل: ${esc(entryDraft.shopName)}</div>` : ''}
+
+      <input class="select-field" placeholder="اسم المحل" value="${esc(entryDraft.shopName)}" oninput="entryDraft.shopName=this.value">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+        <input class="select-field" placeholder="اسم العميل" value="${esc(entryDraft.clientName)}" oninput="entryDraft.clientName=this.value">
+        <input class="select-field" placeholder="التليفون" value="${esc(entryDraft.phone)}" oninput="entryDraft.phone=this.value">
+      </div>
+      <input class="select-field" style="margin-top:10px;" placeholder="العنوان" value="${esc(entryDraft.address)}" oninput="entryDraft.address=this.value">
+      <input class="select-field" style="margin-top:10px;" placeholder="رقم المكنة (اختياري)" value="${esc(entryDraft.machineNumber)}" oninput="entryDraft.machineNumber=this.value">
+      <div style="margin-top:8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <button class="export-btn-outline" style="margin-top:0; flex:1; min-width:auto; padding:9px 0; font-size:12.5px;" onclick="requestLocation()" ${locatingInProgress ? 'disabled' : ''}>
+          ${locatingInProgress ? '⏳ جاري تحديد الموقع...' : '📍 تحديد الموقع الحالي'}
+        </button>
+        ${entryDraft.locationLink ? `
+          <div style="display:flex; align-items:center; gap:6px; background:rgba(29,158,117,0.12); border:1px solid rgba(29,158,117,0.3); color:#5DCAA5; border-radius:10px; padding:8px 10px; font-size:11.5px; font-weight:700;">
+            📍 تم حفظ الموقع
+            <button onclick="clearLocation()" style="background:none; border:none; color:#F0908F; font-size:12px; padding:0;">✕</button>
+          </div>
+        ` : ''}
+      </div>
+      
+      <label class="field-label">النتيجة</label>
+      <div class="vr-chip-row">
+        ${Object.keys(VISIT_RESULTS).map(k => `
+          <div class="vr-chip ${VISIT_RESULTS[k].chipClass} ${currentVisitResult === k ? 'vr-active' : ''}" onclick="currentVisitResult='${k}'; render();">
+            ${VISIT_RESULTS[k].emoji} ${VISIT_RESULTS[k].label}
+          </div>
+        `).join('')}
+      </div>
+
+      <textarea class="select-field" style="margin-top:14px; min-height:60px;" placeholder="ملاحظات..." oninput="entryDraft.notes=this.value">${esc(entryDraft.notes)}</textarea>
+      
+      <input type="file" id="h-photo-input" hidden accept="image/*" capture="environment" onchange="handlePhotoInput(event)">
+      <div style="margin-top:15px;">
+        ${currentPhoto ? `
+          <div style="position:relative;">
+            <img src="${currentPhoto.dataUrl}" style="width:100%; border-radius:15px; max-height:200px; object-fit:cover;">
+            <button onclick="currentPhoto=null; render();" style="position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.6); border:none; color:white; border-radius:50%; width:30px; height:30px;">✕</button>
+          </div>
+        ` : `
+          <div class="photo-btn" onclick="document.getElementById('h-photo-input').click()">
+            <span style="font-size:20px;">📸</span>
+            <span>تصوير المحل</span>
+          </div>
+        `}
+      </div>
+
+      <button class="primary-btn" onclick="addEntry()">
+        ${editingEntryId ? 'حفظ التعديلات' : 'إضافة للسجل اليومي'}
+      </button>
+    </div>
+
+    <div class="section-card glass">
+      <div class="section-title"><span>سجل الزيارات</span></div>
+      <button class="export-btn-outline" onclick="exportDaily()">
+        <span>📥</span> تصدير زيارات اليوم (Excel)
+      </button>
+      <div style="margin-top:20px;">
+        ${entries.length === 0 ? '<div style="text-align:center; padding:20px; opacity:0.5;">لا توجد زيارات</div>' : ''}
+        ${sortedEntries.map(e => {
+            const area = areas.find(a => a.id === e.areaId);
+            const res = VISIT_RESULTS[e.visitResult] || {label: '', badgeClass: ''};
+            return `
+            <div class="entry-row" style="${editingEntryId === e.id ? 'background:rgba(239, 159, 39, 0.1); border-radius:12px;' : ''}">
+                ${e.photo ? `<img src="${e.photo.dataUrl}" class="entry-thumb">` : `<div class="entry-thumb" style="background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; font-size:18px;">🏪</div>`}
+                <div style="flex:1;">
+                <div style="font-weight:700; font-size:13px;">${esc(e.shopName || 'بدون اسم')} <span class="visit-badge ${res.badgeClass}">${res.label}</span></div>
+                <div style="font-size:10px; color:#7C8C86; margin-top:2px;">📍 ${esc(area ? area.name : '؟')} • 🕐 ${fmtTime(e.time)}${e.machineNumber ? ' • 🔧 ' + esc(e.machineNumber) : ''}</div>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+                    <button class="action-icon-btn" style="color:#5DCAA5;" onclick="editEntry('${e.id}')">✏️</button>
+                    <button class="action-icon-btn" style="color:#E24B4A;" onclick="if(confirm('حذف؟')){entries=entries.filter(x=>x.id!=='${e.id}'); saveData(); render();}">🗑</button>
+                    ${e.visitResult === 'down' || isInFollowUp(e.id)
+                        ? `<span style="font-size:9px; color:#EF9F27; font-weight:700;">📌 متابعة</span>`
+                        : `<button class="action-icon-btn" style="color:#EF9F27; font-size:9px; padding:2px;" onclick="addToFollowUp('${e.id}')">🔖 متابعة</button>`
+                    }
+                </div>
+            </div>
+            `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function buildReports(){
+  const total = entries.length;
+  const counts = {down: 0, active: 0, thinking: 0, rejected: 0, installed: 0};
+  entries.forEach(e => { if(counts[e.visitResult] !== undefined) counts[e.visitResult]++; });
+  const rate = total > 0 ? Math.round(((counts.down + counts.active + counts.installed) / total) * 100) : 0;
+  const dashArray = `${(rate / 100) * 100}, 100`;
+
+  return `
+    <div class="section-card glass">
+      <div class="section-title"><span>معدل الإنجاز</span></div>
+      <div class="chart-container">
+        <svg viewBox="0 0 36 36" class="circular-chart">
+          <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+          <path class="circle-fill" stroke-dasharray="${dashArray}" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+        </svg>
+        <div class="chart-center">
+          <div class="chart-val">${rate}%</div>
+          <div class="chart-lbl">تحويل</div>
+        </div>
+      </div>
+      <div style="text-align:center; font-size:12px; color:#7C8C86;">إجمالي زيارات اليوم: <b>${total}</b></div>
+    </div>
+
+    <div class="section-card glass">
+      <div class="section-title"><span>تقارير احترافية (Excel)</span></div>
+      <button class="export-btn-outline" onclick="exportPeriodic(7)">📅 تصدير تقرير أسبوعي</button>
+      <button class="export-btn-outline" onclick="exportPeriodic(30)">🗓️ تصدير تقرير شهري</button>
+    </div>
+
+    <div class="section-card glass">
+      <div class="section-title"><span>النسخ الاحتياطي (ملف على الهاتف)</span></div>
+      <div style="font-size:11px; color:#7C8C86; margin-bottom:10px;">بتتاخد نسخة تلقائيًا كل أسبوع تقريبًا (مش يوم بيوم) في ملف "${BACKUP_FILENAME}" جوه فولدر "${BACKUP_FOLDER}" داخل مجلد التنزيلات بالهاتف (بدل ما تتوه وسط باقي الملفات). تقدر كمان تاخد نسخة يدويًا وقتما تحب أو ترجّع نسخة قديمة.</div>
+      <button class="export-btn-outline" onclick="downloadBackupFile(false)">📥 تنزيل نسخة احتياطية الآن</button>
+      <button class="export-btn-outline" onclick="document.getElementById('backup-import-input').click()">📤 استيراد نسخة احتياطية</button>
+      <input type="file" id="backup-import-input" accept="application/json" style="display:none;" onchange="importBackupFile(event)">
+    </div>
+
+    <div class="section-card glass">
+      <div class="section-title"><span>أدوات النظام</span></div>
+      <button class="export-btn-outline" style="color:#E24B4A; border-color:#E24B4A44;" onclick="if(confirm('مسح بيانات اليوم؟')){entries=[]; saveData(); render();}">🗑 مسح سجل اليوم</button>
+    </div>
+  `;
+}
+
+function buildCallCenter(){
+  const filtered = callCenterCards.filter(c => 
+    !ccSearchQuery || 
+    (c.machineNumber && c.machineNumber.includes(ccSearchQuery)) ||
+    (c.shopName && c.shopName.includes(ccSearchQuery)) ||
+    (c.phone && c.phone.includes(ccSearchQuery)) ||
+    (c.clientName && c.clientName.includes(ccSearchQuery))
+  ).reverse();
+
+  return `
+    <div class="section-card glass">
+      <div class="section-title"><span>إضافة بطاقات</span></div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+        <button class="primary-btn secondary-btn" style="margin-top:0; font-size:13px;" onclick="openPasteModal()">📝 نسخ رسائل</button>
+        <button class="primary-btn secondary-btn" style="margin-top:0; font-size:13px;" onclick="document.getElementById('xl-input').click()">📊 رفع إكسيل</button>
+      </div>
+      <input type="file" id="xl-input" hidden accept=".xlsx" onchange="handleExcelUpload(event)">
+      <input type="file" id="ocr-input" hidden accept="image/*" onchange="handleScanOCR(event)">
+      <button id="scan-btn" class="primary-btn" style="background:rgba(255,255,255,0.05); color:#fff; font-size:13px; box-shadow:none; border:1px solid rgba(255,255,255,0.1);" onclick="document.getElementById('ocr-input').click()">
+        🔍 مسح صورة ذكي
+      </button>
+    </div>
+
+    <div class="search-bar">
+      <span>🔍</span>
+      <input class="search-input" placeholder="بحث بالاسم، المكنة، أو التليفون..." value="${ccSearchQuery}" oninput="ccSearchQuery=this.value; render();">
+    </div>
+
+    <div class="section-card glass" style="display:flex; gap:8px;">
+      <button class="export-btn-outline" style="margin-top:0;" onclick="exportCallCenterCards()">📊 تصدير الإكسيل</button>
+      <button class="export-btn-outline" style="margin-top:0; color:#F0908F; border-color:rgba(226,75,74,0.3);" onclick="clearAllCallCenterCards()">🗑 مسح كل البطاقات</button>
+    </div>
+
+    <div class="section-card glass">
+      <div class="section-title"><span>البطاقات</span> <span style="font-size:12px; opacity:0.6;">${filtered.length}</span></div>
+      ${filtered.length === 0 ? '<div style="text-align:center; padding:30px; opacity:0.5;">لا توجد نتائج</div>' : ''}
+      ${filtered.map(c => `
+        <div class="followup-card glass" style="margin-bottom:12px; border: 1px solid ${c.convertedToVisit ? 'rgba(29, 158, 117, 0.4)' : 'rgba(255, 255, 255, 0.05)'};">
+          <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:10px;">
+            <div style="flex:1;">
+               <label class="card-input-label">اسم المحل</label>
+               <input class="card-editable-input" value="${esc(c.shopName)}" onchange="updateCCField('${c.id}', 'shopName', this.value)">
+            </div>
+            ${c.phone ? `<a href="tel:${esc(c.phone)}" style="background:rgba(29,158,117,0.12); color:#5DCAA5; border:none; padding:5px 8px; border-radius:8px; margin-right:8px; text-decoration:none; display:inline-flex; align-items:center; font-size:14px;">📞</a>` : ''}
+            <button style="background:rgba(226, 75, 74, 0.1); color:#E24B4A; border:none; padding:5px 8px; border-radius:8px; margin-right:8px;" onclick="callCenterCards=callCenterCards.filter(x=>x.id!=='${c.id}'); saveData(); render();">🗑</button>
+          </div>
+          
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+            <div>
+              <label class="card-input-label">رقم المكنة 🎰</label>
+              <input class="card-editable-input" value="${esc(c.machineNumber)}" onchange="updateCCField('${c.id}', 'machineNumber', this.value)">
+            </div>
+            <div>
+              <label class="card-input-label">التليفون 📞</label>
+              <input class="card-editable-input" value="${esc(c.phone)}" onchange="updateCCField('${c.id}', 'phone', this.value)">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:4px;">
+            <div>
+              <label class="card-input-label">العميل 👤</label>
+              <input class="card-editable-input" value="${esc(c.clientName)}" onchange="updateCCField('${c.id}', 'clientName', this.value)">
+            </div>
+            <div>
+              <label class="card-input-label">المنطقة 📍</label>
+              <select class="card-editable-input" onchange="updateCCField('${c.id}', 'areaId', this.value)">
+                <option value="">اختر منطقة</option>
+                ${areas.map(a => `<option value="${a.id}" ${c.areaId === a.id ? 'selected' : ''}>${esc(a.name)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          ${c.convertedToVisit ? `
+            <div style="margin-top:14px; padding:8px; background:rgba(29, 158, 117, 0.1); color:#5DCAA5; border-radius:10px; font-size:12px; font-weight:700; text-align:center; border: 1px solid rgba(29, 158, 117, 0.2);">
+              ✅ تم التحويل لزيارة
+            </div>
+          ` : `
+            <button class="primary-btn" style="padding:8px 0; font-size:13px; margin-top:14px;" onclick="convertToVisit('${c.id}')">🏬 تحويل لزيارة</button>
+          `}
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function buildFollowup(){
+    const list = [...followUps].reverse();
+    return `
+      <div class="section-card glass">
+        <div class="section-title"><span>المتابعة 📌</span><span style="font-size:12px; opacity:0.6;">${list.length}</span></div>
+        <div style="font-size:11px; color:#7C8C86; margin-bottom:14px;">عملاء "إنزال" بيتحطوا هنا تلقائي، وأي عميل تاني ممكن تحوّله للمتابعة بزرار 🔖 من سجل الزيارات.</div>
+        ${list.length ? `<button class="export-btn-outline" style="margin-top:0; margin-bottom:16px;" onclick="exportFollowUps()">📥 تصدير المتابعة (Excel)</button>` : ''}
+        ${list.length === 0 ? `
+          <div style="text-align:center; padding:30px 20px; opacity:0.5;">
+              <div style="font-size:32px; margin-bottom:12px;">📌</div>
+              <div>لا يوجد عملاء في المتابعة حاليًا.</div>
+          </div>
+        ` : list.map(f => {
+            const area = areas.find(a => a.id === f.areaId);
+            const res = VISIT_RESULTS[f.visitResult] || {label: '', badgeClass: '', emoji: ''};
+            const isDown = f.visitResult === 'down';
+            const reminderPast = f.reminderAt && new Date(f.reminderAt) <= new Date();
+            return `
+            <div class="followup-card glass" style="margin-bottom:12px; padding:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:start; gap:8px;">
+                <div style="flex:1;">
+                  <div style="font-weight:700; font-size:14px;">${esc(f.shopName || 'بدون اسم')} ${res.label ? `<span class="visit-badge ${res.badgeClass}">${res.emoji || ''} ${res.label}</span>` : ''}</div>
+                  <div style="font-size:11px; color:#7C8C86; margin-top:4px;">👤 ${esc(f.clientName || '-')} • 📍 ${esc(area ? area.name : '؟')}${f.machineNumber ? ' • 🔧 ' + esc(f.machineNumber) : ''}</div>
+                  ${f.notes ? `<div style="font-size:11px; color:#B9C4BF; margin-top:6px;">${esc(f.notes)}</div>` : ''}
+                  ${f.reminderAt ? `
+                    <div style="font-size:11px; margin-top:6px; font-weight:700; color:${reminderPast ? '#F0908F' : '#EF9F27'};">
+                      ⏰ تذكير: ${fmtReminder(f.reminderAt)} ${reminderPast ? '(متأخر)' : ''}
+                      <button onclick="clearReminder('${f.id}')" style="background:none; border:none; color:#7C8C86; font-size:11px; padding:0 4px; cursor:pointer;">✕</button>
+                    </div>
+                  ` : ''}
+                </div>
+                ${f.phone ? `<a href="tel:${esc(f.phone)}" style="color:#5DCAA5; font-size:20px; text-decoration:none; padding:6px;">📞</a>` : ''}
+              </div>
+              <input type="datetime-local" id="reminder-input-${f.id}" style="position:absolute; visibility:hidden; width:0; height:0;" value="${f.reminderAt ? f.reminderAt.slice(0,16) : ''}" onchange="setReminder('${f.id}', this.value)">
+              <div style="display:flex; gap:8px; margin-top:12px;">
+                ${!isDown ? `<button class="export-btn-outline" style="margin-top:0; padding:8px 0; font-size:12px; flex:1; color:#5DCAA5;" onclick="markFollowUpDown('${f.id}')">✅ تم الإنزال</button>` : `<div style="flex:1; text-align:center; font-size:12px; font-weight:700; color:#5DCAA5; align-self:center;">✅ اتنزل</div>`}
+                <button class="export-btn-outline" style="margin-top:0; padding:8px 0; font-size:12px; flex:1;" onclick="document.getElementById('reminder-input-${f.id}').showPicker()">⏰ تذكير</button>
+                <button class="export-btn-outline" style="margin-top:0; padding:8px 0; font-size:12px; flex:1; color:#F0908F; border-color:rgba(226,75,74,0.3);" onclick="removeFollowUp('${f.id}')">🗑 حذف</button>
+              </div>
+            </div>
+            `;
+        }).join('')}
+      </div>
+    `;
+}
+
+/* ---------------- Follow-up Excel Export ---------------- */
+async function exportFollowUps() {
+  if (followUps.length === 0) { alert('لا توجد بيانات متابعة لتصديرها'); return; }
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('متابعة', {views: [{rightToLeft: true}]});
+  ws.columns = [
+    {header: 'م', key: 'idx', width: 5},
+    {header: 'اسم المحل', key: 'shop', width: 22},
+    {header: 'اسم العميل', key: 'client', width: 18},
+    {header: 'رقم التليفون', key: 'phone', width: 15},
+    {header: 'رقم المكنة', key: 'machineNumber', width: 14},
+    {header: 'المنطقة', key: 'area', width: 16},
+    {header: 'النتيجة', key: 'result', width: 14},
+    {header: 'موعد التذكير', key: 'reminder', width: 18},
+    {header: 'ملاحظات', key: 'notes', width: 26}
+  ];
+  const headerRow = ws.getRow(1);
+  headerRow.font = {bold: true, color: {argb: 'FFFFFFFF'}};
+  headerRow.alignment = {horizontal: 'center', vertical: 'middle'};
+  headerRow.eachCell((cell) => { cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FF0B6E4F'}}; });
+  headerRow.height = 22;
+
+  followUps.slice().reverse().forEach((f, i) => {
+    const area = areas.find(a => a.id === f.areaId);
+    const vr = VISIT_RESULTS[f.visitResult];
+    const row = ws.addRow({
+      idx: i + 1,
+      shop: f.shopName || '-',
+      client: f.clientName || '-',
+      phone: f.phone || '-',
+      machineNumber: f.machineNumber || '-',
+      area: area ? area.name : '-',
+      result: vr ? (vr.emoji + ' ' + vr.label) : '-',
+      reminder: f.reminderAt ? fmtReminder(f.reminderAt) : '-',
+      notes: f.notes || '-'
+    });
+    row.alignment = {vertical: 'middle', wrapText: true, horizontal: 'right'};
+    row.eachCell((cell) => {
+      cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: f.visitResult === 'down' ? 'FFF3FAF6' : 'FFFDF6EC'}};
+    });
+  });
+
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'بيانات_المتابعة.xlsx'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function convertToVisit(id){
+  const c = callCenterCards.find(x => x.id === id);
+  if(!c) return;
+  entryDraft = { 
+    shopName: c.shopName || '', 
+    clientName: c.clientName || '', 
+    phone: c.phone || '', 
+    address: '', 
+    notes: `تحويل كول سنتر: مكنة ${c.machineNumber || '؟'} ${c.notes ? ' | ' + c.notes : ''}`,
+    locationLink: '',
+    machineNumber: c.machineNumber || ''
+  };
+  currentAreaId = c.areaId || currentAreaId;
+  convertingCallCenterCardId = id;
+  currentTab = 'home';
+  render();
+}
+
+function buildNav(){
+  const tabs = [
+    {id: 'home', icon: '🏠', label: 'اليوم'},
+    {id: 'followup', icon: '📌', label: 'متابعة'},
+    {id: 'callcenter', icon: '☎️', label: 'كول سنتر'},
+    {id: 'reports', icon: '📊', label: 'التقارير'}
+  ];
+  return `
+    <div class="bottom-nav">
+      ${tabs.map(t => `
+        <button class="nav-btn ${currentTab === t.id ? 'active' : ''}" onclick="setTab('${t.id}')">
+          <span class="nav-btn-icon">${t.icon}</span>
+          <span>${t.label}</span>
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
+function render(){
+  const root = document.getElementById('root');
+  let content = '';
+  if(currentTab === 'home') content = buildHome();
+  else if(currentTab === 'followup') content = buildFollowup();
+  else if(currentTab === 'callcenter') content = buildCallCenter();
+  else content = buildReports();
+
+  root.innerHTML = `
+    <div class="app-shell">
+      ${buildHeader()}
+      <div class="body">${content}</div>
+      ${buildNav()}
+    </div>
+  `;
+}
+
+/* --- Call Center / OCR Handlers (unchanged logic) --- */
+function openPasteModal() { document.getElementById('paste-modal').style.display = 'flex'; }
+function clearAllCallCenterCards() {
+  if (callCenterCards.length === 0) { alert('لا توجد بطاقات لمسحها'); return; }
+  if (!confirm('هل أنت متأكد من مسح كل بطاقات الكول سنتر (' + callCenterCards.length + ' بطاقة)؟ الإجراء ده مش هينفع يتراجع عنه.')) return;
+  callCenterCards = [];
+  saveData(); render();
+}
+async function exportCallCenterCards() {
+  if (callCenterCards.length === 0) { alert('لا توجد بطاقات لتصديرها'); return; }
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('كول سنتر', {views: [{rightToLeft: true}]});
+  ws.columns = [
+    {header: 'م', key: 'idx', width: 5},
+    {header: 'اسم المحل', key: 'shop', width: 22},
+    {header: 'رقم المكنة', key: 'machine', width: 14},
+    {header: 'رقم التليفون', key: 'phone', width: 16},
+    {header: 'اسم العميل', key: 'client', width: 20},
+    {header: 'المنطقة', key: 'area', width: 18},
+    {header: 'الحالة', key: 'status', width: 16}
+  ];
+  const headerRow = ws.getRow(1);
+  headerRow.font = {bold: true, color: {argb: 'FFFFFFFF'}};
+  headerRow.alignment = {horizontal: 'center', vertical: 'middle'};
+  headerRow.eachCell((cell) => { cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FF0B6E4F'}}; });
+  headerRow.height = 22;
+
+  callCenterCards.slice().reverse().forEach((c, i) => {
+    const area = areas.find(a => a.id === c.areaId);
+    const row = ws.addRow({
+      idx: i + 1,
+      shop: c.shopName || '-',
+      machine: c.machineNumber || '-',
+      phone: c.phone || '-',
+      client: c.clientName || '-',
+      area: area ? area.name : '-',
+      status: c.convertedToVisit ? '✅ تم التحويل لزيارة' : '⏳ لسه متحولش'
+    });
+    row.alignment = {vertical: 'middle', wrapText: true, horizontal: 'right'};
+    row.eachCell((cell) => {
+      cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: c.convertedToVisit ? 'FFF3FAF6' : 'FFFDF6EC'}};
+    });
+  });
+
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'بيانات_كول_سنتر.xlsx'; a.click();
+  URL.revokeObjectURL(url);
+}
+function updateCCField(id, field, value) {
+  const card = callCenterCards.find(c => c.id === id);
+  if (card) { card[field] = value; saveData(); }
+}
+function processPaste() {
+  const text = document.getElementById('paste-input').value;
+  if (!text) return;
+  const lines = text.split('\n').filter(l => l.trim());
+  lines.forEach(line => {
+    const phone = (line.match(/01[0125]\d{8}/) || [''])[0];
+    const machine = (line.match(/\d{4,7}/) || [''])[0];
+    let name = line.replace(phone, '').replace(machine, '').replace(/[-:,]/g, '').trim();
+    if (phone || machine || name) {
+      callCenterCards.push({ id: uid('cc'), shopName: name, machineNumber: machine, phone: phone, clientName: '', areaId: '', notes: '', time: new Date().toISOString(), convertedToVisit: false });
+    }
+  });
+  document.getElementById('paste-input').value = '';
+  document.getElementById('paste-modal').style.display = 'none';
+  saveData(); render();
+}
+async function handleExcelUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const workbook = new ExcelJS.Workbook();
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      await workbook.xlsx.load(e.target.result);
+      const ws = workbook.getWorksheet(1);
+      ws.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return;
+        const shopName = row.getCell(1).value?.toString() || '';
+        const machine = row.getCell(2).value?.toString() || '';
+        const phone = row.getCell(3).value?.toString() || '';
+        if (shopName || machine || phone) {
+          callCenterCards.push({ id: uid('cc'), shopName, machineNumber: machine, phone, clientName: '', areaId: '', notes: '', time: new Date().toISOString(), convertedToVisit: false });
+        }
+      });
+      saveData(); render();
+    } catch (err) { alert('خطأ في قراءة الملف'); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+async function handleScanOCR(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const btn = document.getElementById('scan-btn');
+  btn.innerHTML = '⏳ جاري المعالجة...';
+  try {
+    const worker = await Tesseract.createWorker('ara+eng');
+    const { data: { text } } = await worker.recognize(file);
+    await worker.terminate();
+    const lines = text.split('\n').filter(l => l.trim().length > 3);
+    ocrDrafts = lines.map(line => {
+      const phone = (line.match(/01[0125]\d{8}/) || [''])[0];
+      const machine = (line.match(/\d{4,7}/) || [''])[0];
+      let shop = line.replace(phone, '').replace(machine, '').trim();
+      return { id: uid('ocr'), phone, machine, shop, original: line };
+    });
+    showOCRModal();
+  } catch (e) { alert('فشل المسح الضوئي'); }
+  finally { btn.innerHTML = '🔍 مسح صورة ذكي'; event.target.value = ''; }
+}
+function showOCRModal() {
+  const container = document.getElementById('ocr-results-list');
+  container.innerHTML = ocrDrafts.map((d, i) => `
+    <div class="followup-card glass" style="margin-bottom:10px; padding:12px;">
+      <div style="font-size:10px; color:#7C8C86; margin-bottom:5px;">${esc(d.original)}</div>
+      <input class="select-field" style="margin-bottom:8px;" placeholder="اسم المحل" value="${esc(d.shop)}" oninput="ocrDrafts[${i}].shop=this.value">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+        <input class="select-field" placeholder="مكنة" value="${d.machine}" oninput="ocrDrafts[${i}].machine=this.value">
+        <input class="select-field" placeholder="تليفون" value="${d.phone}" oninput="ocrDrafts[${i}].phone=this.value">
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('ocr-modal').style.display = 'flex';
+}
+function confirmOCR() {
+  ocrDrafts.forEach(d => {
+    callCenterCards.push({ id: uid('cc'), shopName: d.shop, machineNumber: d.machine, phone: d.phone, clientName: '', areaId: '', notes: '', time: new Date().toISOString(), convertedToVisit: false });
+  });
+  saveData(); closeOCR(); render();
+}
+function closeOCR() { document.getElementById('ocr-modal').style.display = 'none'; ocrDrafts = []; }
+
+(async function init(){
+  await migrateFromLocalStorageIfNeeded();
+  await loadData();
+  render();
+})();
+
+/* تسجيل الـ Service Worker عشان كروم يقدر يعتبر التطبيق قابل للتثبيت (PWA حقيقي مش مجرد اختصار).
+   ده بيشتغل بس لو الملف متفتح من سيرفر HTTPS (أو localhost) — مش من ملف على الجهاز مباشرة. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch((err) => {
+      console.error('SW registration failed:', err);
+    });
+  });
+}
+</script>
+</body></html>
